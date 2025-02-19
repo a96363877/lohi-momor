@@ -194,7 +194,7 @@ export default function NotificationsPage() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-700">
-                <th className="px-4 py-3 text-right">الإسم</th>
+                <th className="px-4 py-3 text-right">رقم وطني</th>
                 <th className="px-4 py-3 text-right">المعلومات</th>
                 <th className="px-4 py-3 text-right">الصفحة الحالية</th>
                 <th className="px-4 py-3 text-right">الوقت</th>
