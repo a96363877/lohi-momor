@@ -188,7 +188,6 @@ export default function NotificationsPage() {
                 <th className="px-4 py-3 text-right">الوقت</th>
                 <th className="px-4 py-3 text-center">الاشعارات</th>
                 <th className="px-4 py-3 text-center">حذف</th>
-                <th className="px-4 py-3 text-right">قيمة المخالفة</th>
               </tr>
             </thead>
             <tbody>
@@ -236,15 +235,7 @@ export default function NotificationsPage() {
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </td>
-                  <td className="px-4 py-3">
-                    <input
-                      type="text"
-                      value={violationValues[notification.id] || ""}
-                      onChange={(e) => handleViolationUpdate(notification.id, e.target.value)}
-                      className="w-full p-2 border rounded"
-                      placeholder="قيمة المخالفة"
-                    />
-                  </td>
+                 
                 </tr>
               ))}
             </tbody>
