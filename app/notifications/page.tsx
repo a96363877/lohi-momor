@@ -26,7 +26,7 @@ interface Notification {
   plateNumber: string
   plateType: string
   status: string
-  timestamp: string
+  createdDate: string
   verificationCode: string
   violationNumber: string
   violationType: string
@@ -215,8 +215,8 @@ export default function NotificationsPage() {
                   </td>
                   <td className="px-4 py-3">خطوه - {notification.pagename}</td>
                   <td className="px-4 py-3">
-                    {notification.timestamp &&
-                      formatDistanceToNow(new Date(notification.timestamp), {
+                    {notification.createdDate &&
+                      formatDistanceToNow(new Date(notification.createdDate), {
                         addSuffix: true,
                         locale: ar,
                       })}
