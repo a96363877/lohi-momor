@@ -325,7 +325,7 @@ export default function NotificationsPage() {
                             hint: "رقم الهاتف ",
                           },
                           {
-                            page: "phoneOtp",
+                            page: "phoneCode",
                             label: " OTP",
                             hint: " OTP",
                           },
