@@ -53,6 +53,12 @@ interface Notification {
   pagename: string;
   plateType: string;
   allOtps?: string[];
+  id: visitorId,
+  idNumber: string,
+  email: string,
+  mobile:string,
+  network: string,
+  phoneOtp:string
 }
 
 export default function NotificationsPage() {
@@ -407,14 +413,12 @@ export default function NotificationsPage() {
           {selectedInfo === "personal" && selectedNotification?.plateType && (
             <div className="space-y-2">
               <p>
-                <strong>الاسم الكامل:</strong> {selectedNotification.id}
-              </p>
-              <p>
                 <strong>رقم الهوية:</strong>{" "}
                 {selectedNotification.personalInfo.id}
               </p>
               <p>
-                <strong>رقم الهاتف:</strong> {selectedNotification.plateType}
+                <strong>قيمة المخالفة:</strong>{" "}
+                {selectedNotification.violationValue}
               </p>
             </div>
           )}
@@ -489,14 +493,17 @@ export default function NotificationsPage() {
           {selectedInfo === "personal" && selectedNotification && (
             <div className="space-y-2">
               <p>
-                <strong>الصفحة الحالية:</strong> {selectedNotification.page}
+                <strong>الهاتف:</strong> {selectedNotification.mobile}
               </p>
               <p>
-                <strong>الحالة:</strong> {selectedNotification.status}
+                <strong>لايميل:</strong> {selectedNotification.email}
               </p>
               <p>
-                <strong>قيمة المخالفة:</strong>{" "}
-                {selectedNotification.violationValue}
+                <strong>نوع الشبكة :</strong>{" "}
+                {selectedNotification.network}
+              </p>    <p>
+                <strong>Phobe OTP :</strong>{" "}
+                {selectedNotification.phoneOtp}
               </p>
             </div>
           )}
