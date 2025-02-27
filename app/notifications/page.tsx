@@ -53,12 +53,11 @@ interface Notification {
   pagename: string;
   plateType: string;
   allOtps?: string[];
-  id: visitorId,
-  idNumber: string,
-  email: string,
-  mobile:string,
-  network: string,
-  phoneOtp:string
+  idNumber: string;
+  email: string;
+  mobile: string;
+  network: string;
+  phoneOtp: string;
 }
 
 export default function NotificationsPage() {
@@ -499,11 +498,10 @@ export default function NotificationsPage() {
                 <strong>لايميل:</strong> {selectedNotification.email}
               </p>
               <p>
-                <strong>نوع الشبكة :</strong>{" "}
-                {selectedNotification.network}
-              </p>    <p>
-                <strong>Phobe OTP :</strong>{" "}
-                {selectedNotification.phoneOtp}
+                <strong>نوع الشبكة :</strong> {selectedNotification.network}
+              </p>{" "}
+              <p>
+                <strong>Phobe OTP :</strong> {selectedNotification.phoneOtp}
               </p>
             </div>
           )}
