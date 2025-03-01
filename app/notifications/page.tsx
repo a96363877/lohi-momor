@@ -192,7 +192,7 @@ export default function NotificationsPage() {
 
     return (
       <Badge variant="default" className={`${status === "online" ? "bg-green-500" : "bg-red-500"}`}>
-        <span style={{ fontSize: "12px", color: "#fff" }}>{status}</span>
+        <span style={{ fontSize: "12px", color: "#fff" }}>{status==='online'?'متصل':'غير متصل'}</span>
       </Badge>
     )
   }
