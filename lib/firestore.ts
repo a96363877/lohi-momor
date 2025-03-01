@@ -1,6 +1,7 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore} from 'firebase/firestore';
+import { getDatabase} from 'firebase/database';
 
 const firebaseConfig = {
    apiKey: "AIzaSyBSBQlPHwbrkBxeQ54RZw6jGUkfcBAeI-0",
@@ -15,8 +16,10 @@ const firebaseConfig = {
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const database = getDatabase(app);
 
-export { app, auth, db };
+
+export { app, auth, db ,database};
 
 export interface NotificationDocument {
   id: string;
