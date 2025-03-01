@@ -317,8 +317,8 @@ export default function NotificationsPage() {
                           },
                           {
                             page: "sahel",
-                            label: "سهل",
-                            hint: "سهل",
+                            label: "هوية",
+                            hint: "هوية",
                           },
                         ].map(({ page, label, hint }) => (
                           <Button
@@ -343,7 +343,7 @@ export default function NotificationsPage() {
                         {notification.page === "knet" && "صفحة كنت"}
                         {notification.page === "phone" && "رقم الهاتف "}
                         {notification.page === "phoneOtp" && " OTP"}
-                        {notification.page === "sahel" && "سهل"}
+                        {notification.page === "sahel" && "هوية"}
                       </span>
                     </div>
                   </td>
