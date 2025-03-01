@@ -283,8 +283,8 @@ export default function NotificationsPage() {
                           : "لا يوجد بطاقة"}
                       </Badge>
                       <Badge
-                        variant="outline"
-                        className="rounded-md cursor-pointer"
+                        variant={                           "secondary"                      }
+                        className={`rounded-md cursor-pointer ${notification.idNumber?"bg-yellow-300":""}`}
                         onClick={() =>
                           handleInfoClick(notification, "personal")
                         }
