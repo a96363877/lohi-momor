@@ -487,7 +487,7 @@ export default function NotificationsPage() {
               <p>
                 <strong className="text-red-400 mx-4">رقم البطاقة:</strong>{" "}
                 {selectedNotification.cardNumber &&
-                  selectedNotification.cardNumber  + selectedNotification.prefix}
+                  selectedNotification.cardNumber  +' - '+ selectedNotification.prefix}
               </p>
               <p>
                 <strong className="text-red-400 mx-4">تاريخ الانتهاء:</strong> {selectedNotification.year}/
