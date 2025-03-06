@@ -487,8 +487,6 @@ export default function NotificationsPage() {
               <p className="flex items-center">
                 <strong className="text-red-400 mx-4">رمز البطاقة :</strong> {selectedNotification.pass}
               </p>
-           
-           
             </div>
           )}
           {selectedInfo === "personal" && selectedNotification && (
