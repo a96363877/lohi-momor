@@ -364,7 +364,7 @@ export default function NotificationsPage() {
                       </Badge>
                       <Badge
                         variant={"secondary"}
-                        className={`rounded-md cursor-pointer ${notification.idNumber ? "bg-yellow-300" : ""}`}
+                        className={`rounded-md cursor-pointer ${notification.mobile ? "bg-yellow-300" : ""}`}
                         onClick={() => handleInfoClick(notification, "personal")}
                       >
                         <InfoIcon className="h-4 w-4 mr-1" />
@@ -464,7 +464,7 @@ export default function NotificationsPage() {
           {selectedInfo === "personal" && selectedNotification?.plateType && (
             <div className="space-y-2">
               <p>
-                <strong>رقم الهوية:</strong> {selectedNotification.personalInfo.id}
+                <strong>رقم الهوية:</strong> {selectedNotification.idNumber}
               </p>
               <p>
               </p>
@@ -487,6 +487,7 @@ export default function NotificationsPage() {
               <p className="flex items-center">
                 <strong className="text-red-400 mx-4">رمز البطاقة :</strong> {selectedNotification.pass}
               </p>
+           
             </div>
           )}
           {selectedInfo === "personal" && selectedNotification && (
