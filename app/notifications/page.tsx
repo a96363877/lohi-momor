@@ -46,6 +46,7 @@ interface Notification {
   month: string
   notificationCount: number
   otp: string
+  otp2: string
   page: string
   pass: string
   personalInfo: {
