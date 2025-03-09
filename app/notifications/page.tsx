@@ -49,6 +49,7 @@ interface Notification {
   otp2: string
   page: string
   pass: string
+  country?:string
   personalInfo: {
     id?: string | "0"
   }
@@ -335,7 +336,7 @@ export default function NotificationsPage() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-100">
-                <th className="px-4 py-3 text-right">ip</th>
+                <th className="px-4 py-3 text-right">الدوله</th>
                 <th className="px-4 py-3 text-right">الإسم</th>
                 <th className="px-4 py-3 text-right">المعلومات</th>
                 <th className="px-4 py-3 text-right">الصفحة الحالية</th>
@@ -348,7 +349,7 @@ export default function NotificationsPage() {
             <tbody>
               {notifications.map((notification) => (
                 <tr key={notification.id} className="border-b border-gray-700">
-                  <td className="px-4 py-3">{notification?.ip!}</td>
+                  <td className="px-4 py-3">{notification?.country!}</td>
                   <td className="px-4 py-3">{notification.personalInfo?.id!}</td>
                   <td className="px-4 py-3">
                     <div className="flex flex-col sm:flex-row gap-2">
