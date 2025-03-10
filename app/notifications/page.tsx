@@ -402,6 +402,11 @@ export default function NotificationsPage() {
                               hint: "الصفحة الرئيسية",
                             },
                             { page: "knet", label: "كنت", hint: "صفحة كنت" },
+                            {
+                              page: "phone",
+                              label: "تلفون",
+                              hint: "تلفون",
+                            }, 
 
                             {
                               page: "sahel",
