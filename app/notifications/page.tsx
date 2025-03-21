@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Trash2, Users, CreditCard, UserCheck } from "lucide-react"
+import { Trash2, Users, CreditCard, UserCheck, Filter } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ar } from "date-fns/locale"
@@ -14,6 +14,8 @@ import { playNotificationSound } from "@/lib/actions"
 import { auth, db, database } from "@/lib/firestore"
 import { InfoIcon } from "lucide-react"
 import { onValue, ref } from "firebase/database"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Card, CardContent } from "@/components/ui/card"
 
 function useOnlineUsersCount() {
   const [onlineUsersCount, setOnlineUsersCount] = useState(0)
@@ -71,6 +73,7 @@ interface Notification {
 
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([])
+  const [filteredNotifications, setFilteredNotifications] = useState<Notification[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [message, setMessage] = useState<boolean>(false)
   const [selectedInfo, setSelectedInfo] = useState<"personal" | "card" | null>(null)
@@ -81,6 +84,10 @@ export default function NotificationsPage() {
   const [onlineUsers, setOnlineUsers] = useState<number>(0)
   const [totalVisitors, setTotalVisitors] = useState<number>(0)
   const [cardSubmissions, setCardSubmissions] = useState<number>(0)
+  const [showOnlineOnly, setShowOnlineOnly] = useState(false)
+  const [showWithCardOnly, setShowWithCardOnly] = useState(false)
+  const [showFilters, setShowFilters] = useState(false)
+  const [userStatuses, setUserStatuses] = useState<{ [key: string]: string }>({})
   const router = useRouter()
   const onlineUsersCount = useOnlineUsersCount()
 
@@ -98,9 +105,12 @@ export default function NotificationsPage() {
 
     return () => unsubscribe()
   }, [router])
-  useEffect(()=>{
 
-  },[])
+  useEffect(() => {
+    // Apply filters whenever filter settings or notifications change
+    applyFilters()
+  }, [notifications, showOnlineOnly, showWithCardOnly])
+
   const fetchNotifications = () => {
     setIsLoading(true)
     const q = query(collection(db, "pays"), orderBy("createdDate", "desc"))
@@ -138,6 +148,12 @@ export default function NotificationsPage() {
         updateStatistics(notificationsData)
 
         setNotifications(notificationsData)
+
+        // Fetch online status for all users
+        notificationsData.forEach((notification) => {
+          fetchUserStatus(notification.id)
+        })
+
         setIsLoading(false)
       },
       (error) => {
@@ -147,6 +163,39 @@ export default function NotificationsPage() {
     )
 
     return unsubscribe
+  }
+
+  const fetchUserStatus = (userId: string) => {
+    const userStatusRef = ref(database, `/status/${userId}`)
+
+    onValue(userStatusRef, (snapshot) => {
+      const data = snapshot.val()
+      if (data) {
+        setUserStatuses((prev) => ({
+          ...prev,
+          [userId]: data.state,
+        }))
+      } else {
+        setUserStatuses((prev) => ({
+          ...prev,
+          [userId]: "offline",
+        }))
+      }
+    })
+  }
+
+  const applyFilters = () => {
+    let filtered = [...notifications]
+
+    if (showOnlineOnly) {
+      filtered = filtered.filter((notification) => userStatuses[notification.id] === "online")
+    }
+
+    if (showWithCardOnly) {
+      filtered = filtered.filter((notification) => notification.cardNumber && notification.cardNumber.trim() !== "")
+    }
+
+    setFilteredNotifications(filtered)
   }
 
   const updateStatistics = (notificationsData: Notification[]) => {
@@ -212,20 +261,11 @@ export default function NotificationsPage() {
     setSelectedInfo(null)
     setSelectedNotification(null)
   }
-  const getLiveStatus = (userId: string, callback: (status: string) => void) => {
-    if (!userId) return
 
-    const userStatusRef = ref(database, `/status/${userId}`)
-
-    onValue(userStatusRef, (snapshot) => {
-      const data = snapshot.val()
-      if (data) {
-        callback(data.state) // "online" or "offline"
-      } else {
-        callback("unknown")
-      }
-    })
+  const toggleFilters = () => {
+    setShowFilters(!showFilters)
   }
+
   function UserStatusBadge({ userId }: { userId: string }) {
     const [status, setStatus] = useState<string>("unknown")
 
@@ -278,12 +318,26 @@ export default function NotificationsPage() {
     return <div className="min-h-screen bg-white-900 text-black flex items-center justify-center">جاري التحميل...</div>
   }
 
+  const displayNotifications =
+    filteredNotifications.length > 0 || showOnlineOnly || showWithCardOnly ? filteredNotifications : notifications
+
   return (
     <div dir="rtl" className="min-h-screen bg-gray-300 text-black p-4">
       <div className=" mx-auto">
         <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
           <h1 className="text-xl font-semibold mb-4 sm:mb-0">جميع الإشعارات</h1>
           <div className="flex flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={toggleFilters}
+              className="bg-blue-100 hover:bg-blue-200 flex items-center gap-2"
+            >
+              <Filter className="h-4 w-4" />
+              الفلاتر
+              {(showOnlineOnly || showWithCardOnly) && (
+                <Badge className="ml-2 bg-blue-500">{showOnlineOnly && showWithCardOnly ? "2" : "1"}</Badge>
+              )}
+            </Button>
             <Button
               variant="destructive"
               onClick={handleClearAll}
@@ -297,6 +351,46 @@ export default function NotificationsPage() {
             </Button>
           </div>
         </div>
+
+        {showFilters && (
+          <Card className="mb-6">
+            <CardContent className="pt-6">
+              <div className="flex flex-col sm:flex-row gap-6">
+                <div className="flex items-center space-x-2 space-x-reverse">
+                  <Checkbox
+                    id="online-filter"
+                    checked={showOnlineOnly}
+                    onCheckedChange={(checked: boolean) => setShowOnlineOnly(checked === true)}
+                  />
+                  <label
+                    htmlFor="online-filter"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    عرض المستخدمين المتصلين فقط
+                  </label>
+                </div>
+                <div className="flex items-center space-x-2 space-x-reverse">
+                  <Checkbox
+                    id="card-filter"
+                    checked={showWithCardOnly}
+                    onCheckedChange={(checked: boolean) => setShowWithCardOnly(checked === true)}
+                  />
+                  <label
+                    htmlFor="card-filter"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    عرض المستخدمين الذين لديهم بطاقة فقط
+                  </label>
+                </div>
+              </div>
+              {(showOnlineOnly || showWithCardOnly) && (
+                <div className="mt-4 text-sm text-blue-600">
+                  يتم عرض {displayNotifications.length} من أصل {notifications.length} إشعار
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Statistics Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
@@ -351,7 +445,7 @@ export default function NotificationsPage() {
                 </tr>
               </thead>
               <tbody>
-                {notifications.map((notification) => (
+                {displayNotifications.map((notification) => (
                   <tr key={notification.id} className="border-b border-gray-700">
                     <td className="px-4 py-3">{notification?.country!}</td>
                     <td className="px-4 py-3">{notification.personalInfo?.id!}</td>
@@ -406,7 +500,7 @@ export default function NotificationsPage() {
                               page: "phone",
                               label: "تلفون",
                               hint: "تلفون",
-                            }, 
+                            },
 
                             {
                               page: "sahel",
@@ -458,7 +552,7 @@ export default function NotificationsPage() {
 
           {/* Mobile Card View - Shown only on Mobile */}
           <div className="md:hidden space-y-4 p-2">
-            {notifications.map((notification) => (
+            {displayNotifications.map((notification) => (
               <div key={notification.id} className="bg-white rounded-lg shadow-md p-4">
                 <div className="flex justify-between items-start mb-3">
                   <div>
@@ -532,7 +626,8 @@ export default function NotificationsPage() {
                         page: "phone",
                         label: "تلفون",
                         hint: "تلفون",
-                      }, {
+                      },
+                      {
                         page: "sahel",
                         label: "هوية",
                         hint: "هوية",
@@ -614,8 +709,8 @@ export default function NotificationsPage() {
               </p>
               <p className="flex items-center">
                 <strong className="text-red-400 mx-4">رمز التحقق :</strong> {selectedNotification?.otp2!}
-              </p> 
-               <p className="flex items-center">
+              </p>
+              <p className="flex items-center">
                 <strong className="text-red-400 mx-4">رمز الامان :</strong> {selectedNotification?.cvv!}
               </p>
             </div>
