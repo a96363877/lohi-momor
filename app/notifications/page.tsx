@@ -140,9 +140,8 @@ export default function NotificationsPage() {
         )
 
         // Only play notification sound if new card info or general info is added
-        if (hasNewCardInfo || hasNewGeneralInfo) {
+
           playNotificationSound()
-        }
 
         // Update statistics
         updateStatistics(notificationsData)
