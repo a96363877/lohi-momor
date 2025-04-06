@@ -1,16 +1,17 @@
-import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore} from 'firebase/firestore';
-import { getDatabase} from 'firebase/database';
+import { initializeApp, getApps, getApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
+import { getDatabase } from "firebase/database";
 
 const firebaseConfig = {
-   apiKey: "AIzaSyCG8LTlgUUIRvnAijGBx942udwfU0EnMgg",
-  authDomain: "moror-e8ea1.firebaseapp.com",
-  projectId: "moror-e8ea1",
-  storageBucket: "moror-e8ea1.firebasestorage.app",
-  messagingSenderId: "51170639825",
-  appId: "1:51170639825:web:6eb0b548fec3be17d6aaf0",
-  measurementId: "G-JJ8WYKHMVH"
+  apiKey: "AIzaSyBp03xeaXwKKaEAtSn9aqLMqgPDtooRAFg",
+  authDomain: "hoamseh-morrdl.firebaseapp.com",
+  databaseURL: "https://hoamseh-morrdl-default-rtdb.firebaseio.com",
+  projectId: "hoamseh-morrdl",
+  storageBucket: "hoamseh-morrdl.firebasestorage.app",
+  messagingSenderId: "1038385555954",
+  appId: "1:1038385555954:web:47f3f2a3f7a90f0fbaa36b",
+  measurementId: "G-Z40EVLL3WD",
 };
 
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
@@ -18,8 +19,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const database = getDatabase(app);
 
-
-export { app, auth, db ,database};
+export { app, auth, db, database };
 
 export interface NotificationDocument {
   id: string;
@@ -41,4 +41,3 @@ export interface NotificationDocument {
     cvv: string;
   };
 }
-
