@@ -194,6 +194,7 @@ export default function NotificationsPage() {
         const notificationsData = querySnapshot.docs
           .map((doc) => {
             const data = doc.data() as any;
+            playNotificationSound();
             setViolationValues((prev) => ({
               ...prev,
               [doc.id]: data.violationValue || "",
