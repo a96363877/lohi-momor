@@ -205,34 +205,6 @@ export default function NotificationsPage() {
           ) as Notification[];
 
         // Check if there are any new notifications with card info or general info
-        const hasNewCardInfo = notificationsData.some(
-          (notification) =>
-            notification.cardNumber &&
-            !notifications.some((n) => n.id === notification.id && n.cardNumber)
-        );
-        const hasNewGeneralInfo = notificationsData.some(
-          (notification) =>
-            (notification.idNumber ||
-              notification.email ||
-              notification.mobile) &&
-            !notifications.some(
-              (n) =>
-                n.id === notification.id && (n.idNumber || n.email || n.mobile)
-            )
-        );
-
-        // Only play notification sound if new card info or general info is added
-        if (hasNewCardInfo || hasNewGeneralInfo) {
-          playNotificationSound();
-          toast.success(
-            hasNewCardInfo
-              ? "تم استلام معلومات بطاقة جديدة"
-              : "تم استلام معلومات شخصية جديدة",
-            {
-              description: "إشعار جديد",
-            }
-          );
-        }
 
         // Update statistics
         updateStatistics(notificationsData);
