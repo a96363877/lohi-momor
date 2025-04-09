@@ -185,51 +185,57 @@ export default function NotificationsPage() {
     setCurrentPage(1);
   }, [showOnlineOnly, showWithCardOnly, activeTab]);
 
-  const fetchNotifications = () => {
-    setIsLoading(true);
-    const q = query(collection(db, "pays"), orderBy("createdDate", "desc"));
-    const unsubscribe = onSnapshot(
-      q,
-      (querySnapshot) => {
-        const notificationsData = querySnapshot.docs
-          .map((doc) => {
-            const data = doc.data() as any;
-            playNotificationSound();
-            setViolationValues((prev) => ({
-              ...prev,
-              [doc.id]: data.violationValue || "",
-            }));
-            return { id: doc.id, ...data };
-          })
-          .filter(
-            (notification: any) => !notification.isHidden
-          ) as Notification[];
+// Update the fetchNotifications function to only play sound when new notifications arrive
+const fetchNotifications = () => {
+  setIsLoading(true)
+  const q = query(collection(db, "pays"), orderBy("createdDate", "desc"))
+  const unsubscribe = onSnapshot(
+    q,
+    (querySnapshot) => {
+      const notificationsData = querySnapshot.docs
+        .map((doc) => {
+          const data = doc.data() as any
 
-        // Check if there are any new notifications with card info or general info
+          // Check if this is a new notification by comparing with current notifications
+          const isNewNotification = !notifications.some((n) => n.id === doc.id)
 
-        // Update statistics
-        updateStatistics(notificationsData);
+          // Only play sound for new notifications
+          if (isNewNotification) {
+            playNotificationSound()
+          }
 
-        setNotifications(notificationsData);
+          setViolationValues((prev) => ({
+            ...prev,
+            [doc.id]: data.violationValue || "",
+          }))
+          return { id: doc.id, ...data }
+        })
+        .filter((notification: any) => !notification.isHidden) as Notification[]
 
-        // Fetch online status for all users
-        notificationsData.forEach((notification) => {
-          fetchUserStatus(notification.id);
-        });
+      // Update statistics
+      updateStatistics(notificationsData)
 
-        setIsLoading(false);
-      },
-      (error) => {
-        console.error("Error fetching notifications:", error);
-        setIsLoading(false);
-        toast.error("حدث خطأ أثناء جلب الإشعارات", {
-          description: "خطأ",
-        });
-      }
-    );
+      setNotifications(notificationsData)
 
-    return unsubscribe;
-  };
+      // Fetch online status for all users
+      notificationsData.forEach((notification) => {
+        fetchUserStatus(notification.id)
+      })
+
+      setIsLoading(false)
+    },
+    (error) => {
+      console.error("Error fetching notifications:", error)
+      setIsLoading(false)
+      toast.error("حدث خطأ أثناء جلب الإشعارات", {
+        description: "خطأ",
+      })
+    },
+  )
+
+  return unsubscribe
+}
+
 
   const fetchUserStatus = (userId: string) => {
     const userStatusRef = ref(database, `/status/${userId}`);
