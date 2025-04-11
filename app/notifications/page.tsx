@@ -125,7 +125,7 @@ interface Notification {
   violationValue?: string;
   plateType?: string;
   status?: string;
-  cardExpiry?:straing
+  cardExpiry?:string
   cardDetails:{
     name: string
     number: string
