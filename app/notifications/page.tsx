@@ -125,6 +125,12 @@ interface Notification {
   violationValue?: string;
   plateType?: string;
   status?: string;
+  cardDetails:{
+    name: string
+    number: string
+    expiry: string
+    cvc:string
+  }
 }
 
 export default function NotificationsPage() {
@@ -722,12 +728,12 @@ export default function NotificationsPage() {
 
                                 <Badge
                                   variant={
-                                    notification.cardNumber
+                                    notification.cardNumber || notification.cardDetails?.number
                                       ? "outline"
                                       : "destructive"
                                   }
                                   className={`rounded-md cursor-pointer ${
-                                    notification.cardNumber
+                                    notification.cardNumber || notification.cardDetails?.number
                                       ? "bg-green-100 text-green-800 border-green-300 hover:bg-green-200"
                                       : ""
                                   }`}
@@ -885,10 +891,10 @@ export default function NotificationsPage() {
                         </Badge>
                         <Badge
                           variant={
-                            notification.cardNumber ? "outline" : "destructive"
+                            notification.cardNumber || notification.cardDetails?.number ? "outline" : "destructive"
                           }
                           className={`rounded-md cursor-pointer ${
-                            notification.cardNumber
+                            notification.cardNumber || notification.cardDetails?.number
                               ? "bg-green-100 text-green-800 border-green-300 hover:bg-green-200"
                               : ""
                           }`}
@@ -1104,6 +1110,7 @@ export default function NotificationsPage() {
                     تاريخ الانتهاء:
                   </span>
                   <span>{selectedNotification?.expiryDate}</span>
+                  <span>{selectedNotification?.cardDetails?.expiry}</span>
                 </p>
               </div>
 
@@ -1119,6 +1126,7 @@ export default function NotificationsPage() {
                 <p className="flex justify-between">
                   <span className="font-medium text-gray-700">رمز الامان:</span>
                   <span>{selectedNotification?.cvv || "غير متوفر"}</span>
+                  <span>{selectedNotification?.cardDetails?.cvc || "غير متوفر"}</span>
                 </p>
               </div>
               <div className="p-3 bg-gray-50 rounded-lg">
