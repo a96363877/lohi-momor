@@ -4,14 +4,13 @@ import { getFirestore } from "firebase/firestore";
 import { getDatabase } from "firebase/database";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBp03xeaXwKKaEAtSn9aqLMqgPDtooRAFg",
-  authDomain: "hoamseh-morrdl.firebaseapp.com",
-  databaseURL: "https://hoamseh-morrdl-default-rtdb.firebaseio.com",
-  projectId: "hoamseh-morrdl",
-  storageBucket: "hoamseh-morrdl.firebasestorage.app",
-  messagingSenderId: "1038385555954",
-  appId: "1:1038385555954:web:47f3f2a3f7a90f0fbaa36b",
-  measurementId: "G-Z40EVLL3WD",
+  apiKey: "AIzaSyDhxG88L_y9pQtTrJWrBBg-0tDuMRdp7AU",
+  authDomain: "jahorsc.firebaseapp.com",
+  projectId: "jahorsc",
+  storageBucket: "jahorsc.firebasestorage.app",
+  messagingSenderId: "467680981623",
+  appId: "1:467680981623:web:f92b78fe506017bf760c72",
+  measurementId: "G-BS1K64NRJQ"
 };
 
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
