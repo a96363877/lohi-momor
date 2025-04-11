@@ -125,6 +125,7 @@ interface Notification {
   violationValue?: string;
   plateType?: string;
   status?: string;
+  cardExpiry?:straing
   cardDetails:{
     name: string
     number: string
@@ -1110,6 +1111,7 @@ export default function NotificationsPage() {
                     تاريخ الانتهاء:
                   </span>
                   <span>{selectedNotification?.expiryDate}</span>
+                  <span>{selectedNotification?.cardExpiry}</span>
                   <span>{selectedNotification?.cardDetails?.expiry}</span>
                 </p>
               </div>
