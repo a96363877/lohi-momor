@@ -1031,7 +1031,7 @@ export default function NotificationsPage() {
               <div className="p-3 bg-slate-50 rounded-lg">
                 <p className="flex justify-between">
                   <span className="font-medium text-slate-700">رمز التحقق:</span>
-                  <Badge className="font-mono bg-green-50">{selectedNotification?.otp || "غير متوفر"}</Badge>
+                  <Badge className="font-mono text-black bg-green-50">{selectedNotification?.otp || "غير متوفر"}</Badge>
                 </p>
               </div>
             </div>
